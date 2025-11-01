@@ -3,10 +3,24 @@ languageCode = 'en-us'
 title = 'Forces of Nature RPG'
 theme = "hextra"
 
+[params]
+defaultContentLanguage = "pt-br"
+disableLanguagesInURL = true
+externalLinkDecoration = true
+
+[params.footer]
+    displayCopyright = true
+
+[params.theme]
+    displayToggle = true
+
+[params.github]
+    repository = "fulecorafa/forces-of-nature-rpg"
+
 [[menu.main]]
 name = "Home"
 url = "/"
-weight = 0
+weight = 1
 
 [[menu.main]]
 name = "Societies"
@@ -15,12 +29,21 @@ weight = 1
 
 [[menu.main]]
 name = "Search"
+weight = 2
 params = { type = "search" }
 
 [[menu.main]]
 name = "Theme Toggle"
+weight = 3
 params = { type = "theme-toggle", label = true }
 
 [[menu.main]]
 name = "Language switch"
+weight = 4
 params = { type = "language-switch", label = true, icon = "globe-alt"}
+
+[[menu.main]]
+name = "GitHub"
+weight = 1000
+url = "https://github.com/fulecorafa/forces-of-nature-rpg"
+params = { icon = "github" }
