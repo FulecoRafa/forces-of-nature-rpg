@@ -47,3 +47,7 @@ name = "GitHub"
 weight = 1000
 url = "https://github.com/fulecorafa/forces-of-nature-rpg"
 params = { icon = "github" }
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
