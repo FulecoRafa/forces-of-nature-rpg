@@ -11,9 +11,12 @@ npm run dev      # http://localhost:4321/forces-of-nature-rpg/
 npm run build    # gera ./dist
 npm run preview  # serve ./dist
 npm run check    # checagem de tipos
+npm run deploy   # compila e publica no GitHub Pages
 ```
 
-O deploy roda no push para `main` (`.github/workflows/deploy.yml`).
+O deploy é feito daqui, sem GitHub Actions: `npm run deploy` compila o site e envia `./dist`
+para a branch `gh-pages`, de onde o GitHub Pages serve o site. Rode depois de cada mudança
+que deve ir ao ar.
 
 ## Onde fica o conteúdo
 

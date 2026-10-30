@@ -1,8 +1,7 @@
+# Desativado no push: o deploy é feito localmente com `npm run deploy` (branch gh-pages).
+# Para voltar a usar, reative o push e mude Settings → Pages → Source para "GitHub Actions".
 name: Build and deploy
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 permissions:
   contents: read
