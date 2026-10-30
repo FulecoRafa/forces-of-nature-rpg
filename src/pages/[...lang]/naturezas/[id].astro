@@ -1,0 +1,277 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import NatureSpecimen from '../../../components/NatureSpecimen.astro';
+import NatureName from '../../../components/NatureName.astro';
+import { GROUPS, getNatures, groupLabel, natColor, natureNumber, type Nature } from '../../../lib/natures';
+import { getLocalized } from '../../../lib/content';
+import { collator, langParam, LANGS, useI18n } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const natures = await getNatures();
+  return LANGS.flatMap((lang) => natures.map((n) => ({ params: { lang: langParam(lang), id: n.id }, props: { id: n.id } })));
+}
+
+const { lang, t, u } = useI18n(Astro.url);
+const natures = await getNatures(lang);
+const index = natures.findIndex((n) => n.id === Astro.props.id);
+const sel = natures[index] as Nature;
+const byId = Object.fromEntries(natures.map((n) => [n.id, n]));
+const cmp = collator(lang);
+const entries = (await getLocalized('entries', lang))
+  .filter((e) => e.data.nature === sel.id)
+  .sort((a, b) => cmp(a.data.title, b.data.title))
+  .slice(0, 6);
+---
+
+<BaseLayout title={sel.name} description={sel.short}>
+  <main class="nat-page">
+    <nav class="list" aria-label={t.nav.natures}>
+      {
+        GROUPS.map((g) => (
+          <>
+            <div class="group">{groupLabel(g.id, lang)}</div>
+            {natures
+              .filter((n) => n.group === g.id)
+              .map((n) => (
+                <a
+                  class="row plain spec-host"
+                  href={u(`/naturezas/${n.id}`)}
+                  aria-current={n.id === sel.id ? 'page' : undefined}
+                  style={`--c:${natColor(n.hue)};--c-10:${natColor(n.hue, 0.1)}`}
+                >
+                  <span class="strip" />
+                  <span class="row-name">
+                    <span class="sym">{n.symbol}</span>
+                    <NatureName nature={n} size="17px" />
+                  </span>
+                  <NatureSpecimen nature={n} size="sm" />
+                </a>
+              ))}
+          </>
+        ))
+      }
+      <div class="new">{t.natures.newNature}</div>
+    </nav>
+
+    <article style={`--c:${natColor(sel.hue)}`}>
+      <div class="colorbar"></div>
+      <div class="art-body">
+        <div class="meta">
+          <span>{natureNumber(index)} · {groupLabel(sel.group, lang)}</span>
+          <span class="warn">{t.natures.provisional}</span>
+        </div>
+        <div class="title-row">
+          <NatureName nature={sel} as="h1" shadowScale={2.2} class="big" />
+          <NatureSpecimen nature={sel} size="lg" on />
+        </div>
+        <p class="desc">{sel.description}</p>
+        <div class="cells three">
+          <div><span class="label">{t.natures.can}</span><span>{sel.can}</span></div>
+          <div><span class="label">{t.natures.ui}</span><span>{sel.uiBehavior}</span></div>
+          <div><span class="label">{t.natures.scale}</span><span>{sel.scale}</span></div>
+        </div>
+
+        <div class="block">
+          <span class="label block-head">{t.natures.interactions}</span>
+          {
+            sel.interactions.map((x) => {
+              const o = byId[x.with];
+              return (
+                <a class="inter plain" href={u(`/naturezas/${o.id}`)}>
+                  <span class="inter-name" style={`font-weight:${o.typography.fw};font-style:${o.typography.fs};letter-spacing:${o.typography.ls}`}>
+                    <span class="sq" style={`background:${natColor(o.hue)}`} />
+                    {o.name}
+                  </span>
+                  <span class="inter-text">{x.text}</span>
+                </a>
+              );
+            })
+          }
+        </div>
+
+        <div class="block">
+          <span class="label block-head">{t.natures.entries}</span>
+          {
+            entries.map((e) => (
+              <a class="row-link" href={u(e.data.href ?? `/wiki/${e.slug}`)}>
+                <span class="entry-title">{e.data.title}</span>
+                <span class="label">{t.types[e.data.type].one}</span>
+              </a>
+            ))
+          }
+          {entries.length === 0 && <span class="empty">{t.natures.noEntries}</span>}
+        </div>
+      </div>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .nat-page {
+    display: grid;
+    align-items: stretch;
+  }
+  @media (min-width: 900px) {
+    .nat-page {
+      grid-template-columns: minmax(300px, 1fr) minmax(0, 2fr);
+    }
+    .list {
+      border-right: 1px solid var(--ink);
+    }
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--ink);
+  }
+  @media (min-width: 900px) {
+    .list {
+      border-bottom: 0;
+    }
+  }
+  .group {
+    padding: 14px 20px 8px;
+    border-bottom: 1px solid var(--ink);
+    font: 500 10px var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: var(--paper-2);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 6px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 0 20px 0 0;
+    min-height: 56px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .row:hover {
+    background: var(--paper-2);
+  }
+  .row[aria-current] {
+    background: var(--c-10);
+  }
+  .strip {
+    align-self: stretch;
+    background: var(--c);
+  }
+  .row-name {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+  .sym {
+    font: 500 12px var(--font-mono);
+    color: var(--c);
+    width: 28px;
+  }
+  .new {
+    padding: 16px 20px;
+    font: 500 11px var(--font-mono);
+    color: var(--muted-2);
+    border-bottom: 1px dashed var(--muted-2);
+  }
+
+  article {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .colorbar {
+    height: 10px;
+    background: var(--c);
+  }
+  .art-body {
+    padding: clamp(24px, 4vw, 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    color: var(--muted);
+  }
+  .warn {
+    color: var(--accent);
+  }
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .title-row :global(.big) {
+    margin: 0;
+    font-size: clamp(52px, 9vw, 120px);
+    line-height: 0.9;
+    transform-origin: left bottom;
+  }
+  .desc {
+    margin: 0;
+    font-size: clamp(20px, 2vw, 26px);
+    line-height: 1.4;
+    max-width: 30em;
+  }
+  .three {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+  .three > div {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .block {
+    display: flex;
+    flex-direction: column;
+  }
+  .block-head {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .inter {
+    display: grid;
+    grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .inter:hover {
+    background: var(--paper-2);
+  }
+  .inter-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+  }
+  .sq {
+    width: 10px;
+    height: 10px;
+    flex: none;
+  }
+  .inter-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .entry-title {
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .empty {
+    padding: 16px 0;
+    font: 500 12px var(--font-mono);
+    color: var(--muted-2);
+  }
+</style>

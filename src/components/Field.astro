@@ -1,0 +1,29 @@
+---
+/** Canvas animado de fundo (lente de Penrose ou fios de alma). Preenche o pai posicionado. */
+interface Props {
+  kind: 'penrose' | 'threads' | 'threads-dark';
+  /** -1 para ficar atrás do conteúdo (o pai precisa de isolation:isolate). */
+  z?: number;
+}
+const { kind, z = 0 } = Astro.props;
+---
+
+<fon-field kind={kind} style={`z-index:${z}`}></fon-field>
+
+<script>
+  import '../scripts/fields';
+</script>
+
+<style>
+  fon-field {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+  fon-field :global(canvas) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

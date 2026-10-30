@@ -1,0 +1,32 @@
+---
+import { useI18n } from '../i18n';
+import { creditFor } from '../data/art';
+
+/**
+ * Aviso de canto sobre a imagem: gerada por IA, com convite para artistas.
+ * O pai precisa estar posicionado. Dentro de um link (cartões), use `link={false}`.
+ */
+interface Props {
+  src: ImageMetadata | string;
+  link?: boolean;
+  size?: 'md' | 'sm';
+}
+const { src, link = true, size = 'md' } = Astro.props;
+const { t, u } = useI18n(Astro.url);
+const credit = creditFor(typeof src === 'string' ? src : src.src);
+const Tag = link ? 'a' : 'span';
+---
+
+{
+  credit ? (
+    <span class:list={['ai-badge', 'credit', size]}>
+      {t.art.credited}{' '}
+      {credit.url ? <a href={credit.url}>{credit.artist}</a> : credit.artist}
+    </span>
+  ) : (
+    <Tag class:list={['ai-badge', size]} href={link ? u('/artes') : undefined} title={t.ai.label}>
+      <span class="b">{size === 'sm' ? t.ai.badgeShort : t.ai.badge}</span>
+      {link && <span class="i">{t.ai.invite}</span>}
+    </Tag>
+  )
+}

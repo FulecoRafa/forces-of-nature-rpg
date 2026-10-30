@@ -1,0 +1,201 @@
+---
+import { LANG_NAMES, LANGS, localized, unlocalized, useI18n } from '../i18n';
+import { url } from '../lib/url';
+
+const { lang, t, u } = useI18n(Astro.url);
+const route = unlocalized(Astro.url.pathname);
+
+const items: { label: string; href: string; match: (r: string) => boolean }[] = [
+  { label: t.nav.home, href: '/', match: (r) => r === '/' },
+  { label: t.nav.natures, href: '/naturezas/gravidade', match: (r) => r.startsWith('/naturezas') },
+  { label: t.nav.lore, href: '/lore', match: (r) => r.startsWith('/lore') },
+  { label: t.nav.archive, href: '/arquivo', match: (r) => r.startsWith('/arquivo') || r.startsWith('/wiki') },
+  { label: t.nav.societies, href: '/sociedades', match: (r) => r.startsWith('/sociedades') },
+  { label: t.nav.sheet, href: '/ficha', match: (r) => r.startsWith('/ficha') },
+];
+---
+
+<header class="site-header">
+  <a class="brand plain" href={u('/')}>
+    <span class="dot" aria-hidden="true"></span>
+    <span class="name">Forces of Nature</span>
+  </a>
+  <nav aria-label={t.nav.label}>
+    {
+      items.map((it, i) => {
+        const active = it.match(route);
+        return (
+          <a class:list={['plain', { active }]} href={u(it.href)} aria-current={active ? 'page' : undefined}>
+            <span class="num">{String(i + 1).padStart(2, '0')}</span>
+            {it.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+  <div class="tools">
+    <div class="langs" role="group" aria-label={t.nav.language}>
+      {
+        LANGS.map((l) =>
+          l === lang ? (
+            <span class="lang current" aria-current="true">{LANG_NAMES[l]}</span>
+          ) : (
+            <a class="lang plain" href={url(localized(l, route))} hreflang={l} lang={l}>
+              {LANG_NAMES[l]}
+            </a>
+          ),
+        )
+      }
+    </div>
+    <button
+      class="mode plain"
+      type="button"
+      id="mode-toggle"
+      data-to-dark={t.nav.themeToDark}
+      data-to-light={t.nav.themeToLight}
+      aria-label={t.nav.themeToDark}
+      title={t.nav.themeToDark}
+    >
+      <span class="mode-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<script>
+  // Alterna claro/escuro; a escolha fica no localStorage (lida no <head> antes de pintar).
+  const btn = document.getElementById('mode-toggle') as HTMLButtonElement;
+  const root = document.documentElement;
+  const system = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => (root.dataset.mode ?? (system.matches ? 'dark' : 'light')) === 'dark';
+  const sync = () => {
+    const label = isDark() ? btn.dataset.toLight! : btn.dataset.toDark!;
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+  };
+  btn.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.mode = next;
+    try {
+      localStorage.setItem('mode', next);
+    } catch {}
+    sync();
+  });
+  system.addEventListener('change', sync);
+  sync();
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--paper);
+    border-bottom: 1px solid var(--ink);
+    display: flex;
+    align-items: stretch;
+  }
+  .brand {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-right: 1px solid var(--ink);
+    min-height: 52px;
+    color: var(--ink);
+  }
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow:
+      0 0 0 2px var(--paper),
+      0 0 0 3px var(--accent);
+  }
+  .name {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  nav {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav a {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px;
+    min-height: 52px;
+    border-right: 1px solid var(--ink);
+    font: 500 12px var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  nav a:hover,
+  .lang:hover,
+  .mode:hover {
+    background: var(--paper-2);
+  }
+  nav a.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .num {
+    opacity: 0.55;
+  }
+  .tools {
+    flex: none;
+    display: flex;
+    border-left: 1px solid var(--ink);
+    margin-left: -1px;
+  }
+  .langs {
+    display: flex;
+  }
+  .lang,
+  .mode {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 52px;
+    padding: 0 10px;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .lang.current {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 4px;
+  }
+  .mode {
+    border-left: 1px solid var(--ink);
+    color: var(--ink);
+  }
+  /* Meio disco: o lado claro e o escuro */
+  .mode-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  }
+  @media (max-width: 640px) {
+    .brand .name {
+      display: none;
+    }
+    .lang,
+    .mode {
+      min-width: 38px;
+      padding: 0 6px;
+    }
+  }
+</style>

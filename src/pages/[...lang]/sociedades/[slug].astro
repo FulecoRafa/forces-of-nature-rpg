@@ -1,0 +1,33 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Penrose from '../../../components/society/Penrose.astro';
+import Silence from '../../../components/society/Silence.astro';
+import { getNatureMap } from '../../../lib/natures';
+import { getStories } from '../../../lib/stories';
+import { getSocieties } from '../../../lib/content';
+import { langParam, LANGS, useI18n } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const paths = await Promise.all(
+    LANGS.map(async (lang) =>
+      (await getSocieties(lang)).map((s) => ({ params: { lang: langParam(lang), slug: s.slug }, props: { society: s } })),
+    ),
+  );
+  return paths.flat();
+}
+
+const { society } = Astro.props;
+const { lang } = useI18n(Astro.url);
+const { Content } = await render(society);
+const nature = (await getNatureMap(lang))[society.data.nature];
+const stories = (await getStories(lang)).filter((s) => s.data.society === society.slug);
+const Theme = society.data.theme === 'penrose' ? Penrose : Silence;
+const bg = society.data.theme === 'penrose' ? '#13111d' : '#f8f7f3';
+---
+
+<BaseLayout title={society.data.title} description={society.data.cardSummary} bodyBg={bg}>
+  <Theme society={society} nature={nature} stories={stories}>
+    <Content />
+  </Theme>
+</BaseLayout>

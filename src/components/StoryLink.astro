@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import AiBadge from './AiBadge.astro';
+import type { Localized } from '../lib/content';
+import { useI18n } from '../i18n';
+
+interface Props {
+  story: Localized<'stories'>;
+}
+const { story } = Astro.props;
+const { t, u } = useI18n(Astro.url);
+---
+
+<a class="story-link plain" href={u(`/lore/${story.slug}`)}>
+  <span class="thumb"><Image src={story.data.cover} alt="" width={192} class="cover" /><AiBadge src={story.data.cover} link={false} size="sm" /></span>
+  <span class="txt">
+    <span class="k">{t.common.story}{story.data.spoiler && ` · ${t.common.spoiler}`}</span>
+    <span class="t">{story.data.title} →</span>
+  </span>
+</a>
+
+<style>
+  .story-link {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    border: 1px solid var(--t-border);
+    padding: 8px;
+    background: var(--t-card, transparent);
+  }
+  .story-link:hover,
+  .story-link:focus-visible {
+    border-color: var(--t-accent);
+  }
+  .thumb {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #000;
+  }
+  .txt {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .k {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .t {
+    font-size: 18px;
+    font-weight: var(--story-fw, 500);
+  }
+</style>

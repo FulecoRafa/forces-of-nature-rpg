@@ -1,0 +1,22 @@
+---
+import { typeStyle, type Nature } from '../lib/natures';
+
+interface Props {
+  nature: Nature;
+  size?: string;
+  shadowScale?: number;
+  as?: 'span' | 'h1' | 'h2';
+  class?: string;
+}
+
+const { nature, size, shadowScale = 1, as: Tag = 'span', class: cls } = Astro.props;
+const style = [typeStyle(nature.typography, { shadowScale }), size ? `font-size:${size}` : ''].filter(Boolean).join(';');
+---
+
+<Tag class:list={['nat-name', cls]} style={style}>{nature.name}</Tag>
+
+<style>
+  .nat-name {
+    transform-origin: left;
+  }
+</style>

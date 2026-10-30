@@ -1,0 +1,467 @@
+---
+import { Image } from 'astro:assets';
+import AiBadge from '../AiBadge.astro';
+import type { Localized } from '../../lib/content';
+import { useI18n } from '../../i18n';
+import Field from '../Field.astro';
+import PeopleList from '../PeopleList.astro';
+import StoryLink from '../StoryLink.astro';
+import { inline } from '../../lib/inline';
+import { natColor, natColorDark, type Nature } from '../../lib/natures';
+
+interface Props {
+  society: Localized<'societies'>;
+  nature: Nature;
+  stories: Localized<'stories'>[];
+}
+const { society, nature, stories } = Astro.props;
+const { t } = useI18n(Astro.url);
+const d = society.data;
+const num = (i: number) => String(i + 1).padStart(2, '0');
+const secret = d.secret;
+---
+
+<main class="silence" data-theme="silence">
+  <section class="hero">
+    <Field kind="threads" />
+    <div class="tags">
+      <span>{d.code}</span>
+      <span>{d.kind.toUpperCase()}</span>
+      <span style={`color:${natColor(nature.hue)}`}>{t.common.nature}: {nature.name.toUpperCase()}</span>
+      <span>{d.tech ? t.common.tech : t.common.noTech}</span>
+    </div>
+    <h1 set:html={(d.displayTitle ?? d.title).split('\n').join('<br>')} />
+    <p class="lead-p">{d.lead}</p>
+  </section>
+
+  <section class="intro">
+    {
+      d.heroImage && (
+        <figure class="temple">
+          <Image src={d.heroImage} alt={d.heroCaption ?? d.title} widths={[640, 960, 1280]} sizes="(min-width: 900px) 50vw, 100vw" class="cover" loading="eager" />
+          <AiBadge src={d.heroImage} />
+        </figure>
+      )
+    }
+    <div class="intro-text">
+      <div class="body"><slot /></div>
+      {stories.map((s) => <StoryLink story={s} />)}
+    </div>
+  </section>
+
+  {
+    d.values.length > 0 && (
+      <section class="block">
+        <div class="section-head">
+          <h2>{t.societies.values}</h2>
+          <span class="k">{t.societies.valuesSub}</span>
+        </div>
+        <div class="cells values">
+          {d.values.map((v, i) => (
+            <div>
+              <span class="k">
+                {num(i)} · {v.title.toUpperCase()}
+              </span>
+              <span class="motto">{v.motto}</span>
+              {(v.appearance ?? v.description) && <span class="ap" set:html={inline(v.appearance ?? v.description!)} />}
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    d.ranks.length > 0 && (
+      <section class="block ranks">
+        <div class="ranks-intro">
+          <h2>{t.societies.hierarchy}</h2>
+          <p>{t.societies.hierarchyText}</p>
+        </div>
+        <div class="rank-list">
+          {d.ranks.map((r) => (
+            <div class="rank">
+              <span class="sw" style={`background:${r.swatch}`} />
+              <span class="rn">{r.name}</span>
+              <span class="rd">{r.description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    secret && (
+      <fon-secret class="secret-wrap" data-key={`secret:${society.slug}`}>
+        <section class="teaser">
+          <span class="k wide">{t.societies.gmContent}</span>
+          <button class="descend" type="button" aria-expanded="false" aria-controls="secret">
+            {t.societies.descend}
+          </button>
+        </section>
+        <section class="secret" id="secret" data-theme="silence-dark">
+          <Field kind="threads-dark" />
+          <div class="secret-head k wide">
+            <span>{secret.label}</span>
+            <button class="hide plain" type="button">{t.societies.hide}</button>
+          </div>
+          <p class="secret-body">{secret.body}</p>
+          <div class="secret-grid">
+            {secret.image && (
+              <figure>
+                <div class="frame cave">
+                  <Image src={secret.image} alt="" widths={[640, 960]} sizes="(min-width: 900px) 50vw, 100vw" />
+                  <AiBadge src={secret.image} />
+                </div>
+                {secret.imageCaption && <figcaption>{secret.imageCaption}</figcaption>}
+              </figure>
+            )}
+            <div class="boxes">
+              {secret.values.map((v) => (
+                <div class="box value">
+                  <span class="k" style={`color:${natColorDark(nature.hue)}`}>
+                    {v.title.toUpperCase()}
+                  </span>
+                  <span class="box-t">{v.motto}</span>
+                </div>
+              ))}
+              {secret.notes.map((n) => (
+                <div class="box">
+                  <span class="k">{n.label}</span>
+                  <span class="box-x">{n.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {secret.people.length > 0 && <PeopleList people={secret.people} />}
+        </section>
+        <noscript><style>.secret-wrap .secret{display:flex}.secret-wrap .teaser{display:none}</style></noscript>
+      </fon-secret>
+    )
+  }
+</main>
+
+<script>
+  /** Esconde o conteúdo do mestre até o leitor pedir; lembra a escolha na sessão. */
+  class FonSecret extends HTMLElement {
+    connectedCallback() {
+      const key = this.dataset.key ?? 'secret';
+      const open = (v: boolean, scroll = false) => {
+        this.classList.toggle('open', v);
+        this.querySelector('.descend')?.setAttribute('aria-expanded', String(v));
+        try {
+          v ? sessionStorage.setItem(key, '1') : sessionStorage.removeItem(key);
+        } catch {}
+        if (scroll) (v ? this.querySelector('.secret') : this)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      let saved = false;
+      try {
+        saved = sessionStorage.getItem(key) === '1';
+      } catch {}
+      open(saved);
+      this.querySelector('.descend')?.addEventListener('click', () => open(true, true));
+      this.querySelector('.hide')?.addEventListener('click', () => open(false, true));
+    }
+  }
+  if (!customElements.get('fon-secret')) customElements.define('fon-secret', FonSecret);
+</script>
+
+<style>
+  .silence {
+    background: var(--t-bg);
+    color: var(--t-fg);
+  }
+  .k {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .k.wide {
+    letter-spacing: 0.1em;
+  }
+  h2 {
+    margin: 0;
+    font-weight: 300;
+    font-size: clamp(28px, 3.4vw, 40px);
+    letter-spacing: 0.01em;
+  }
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(40px, 8vw, 112px) var(--pad-x) clamp(32px, 5vw, 64px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+    border-bottom: 1px solid var(--t-border);
+  }
+  .tags {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.1em;
+    color: var(--t-label);
+  }
+  h1 {
+    position: relative;
+    margin: 0;
+    font-weight: 300;
+    font-size: clamp(52px, 10vw, 136px);
+    line-height: 0.9;
+    letter-spacing: 0.01em;
+  }
+  .lead-p {
+    position: relative;
+    margin: 0;
+    max-width: 34em;
+    font-size: clamp(18px, 1.8vw, 21px);
+    line-height: 1.6;
+    color: #4a4d55;
+  }
+  .intro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    border-bottom: 1px solid var(--t-border);
+  }
+  .temple {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 16 / 9;
+    align-self: center;
+    border-right: 1px solid var(--t-border);
+    overflow: hidden;
+    background: #e6e5e0;
+  }
+  .intro-text {
+    padding: clamp(24px, 4vw, 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    --story-fw: 400;
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--t-body);
+    max-width: 34em;
+  }
+  .body :global(p) {
+    margin: 0;
+  }
+  .body :global(blockquote) {
+    margin: 8px 0 0;
+    padding: 18px 0 0;
+    border-top: 1px solid var(--t-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .body :global(blockquote p) {
+    font-size: 20px;
+    line-height: 1.5;
+    font-style: italic;
+    color: var(--t-fg);
+  }
+  .body :global(blockquote p:last-child:not(:first-child)) {
+    font: 500 11px var(--font-mono);
+    font-style: normal;
+    color: var(--t-label);
+    text-transform: uppercase;
+  }
+  .block {
+    padding: clamp(28px, 5vw, 64px) var(--pad-x);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-bottom: 1px solid var(--t-border);
+  }
+  .values {
+    --cell-border: var(--t-border);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+  .values > div {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--t-card);
+  }
+  .motto {
+    font-size: 20px;
+    line-height: 1.35;
+  }
+  .ap {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--t-fg-3);
+  }
+  .ranks {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  @media (min-width: 900px) {
+    .ranks {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    }
+  }
+  .ranks-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ranks-intro p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--t-fg-3);
+    max-width: 26em;
+  }
+  .rank-list {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .rank {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 16px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--t-border);
+  }
+  .sw {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--t-silver);
+  }
+  .rn {
+    font-size: 19px;
+  }
+  .rd {
+    font-size: 14px;
+    color: var(--t-fg-3);
+    line-height: 1.45;
+  }
+
+  .secret-wrap {
+    display: block;
+  }
+  .teaser {
+    padding: clamp(32px, 5vw, 64px) var(--pad-x);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    background: linear-gradient(var(--t-bg), #e4e3e8);
+  }
+  .descend {
+    all: unset;
+    cursor: pointer;
+    background: #0d0d12;
+    color: #ecebf2;
+    padding: 16px 26px;
+    font: 500 13px var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .descend:hover {
+    background: oklch(0.4 0.14 330);
+  }
+  .descend:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .secret {
+    display: none;
+    position: relative;
+    overflow: hidden;
+    background: var(--t-bg);
+    color: var(--t-fg);
+    padding: clamp(40px, 7vw, 96px) var(--pad-x);
+    flex-direction: column;
+    gap: clamp(28px, 4vw, 48px);
+  }
+  .secret-wrap.open .secret {
+    display: flex;
+  }
+  .secret-wrap.open .teaser {
+    display: none;
+  }
+  .secret-head {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .hide {
+    color: var(--t-label);
+  }
+  .hide:hover {
+    color: #fff;
+  }
+  .secret-body {
+    position: relative;
+    margin: 0;
+    max-width: 30em;
+    font-size: clamp(22px, 2.6vw, 32px);
+    line-height: 1.4;
+    font-weight: 300;
+  }
+  .secret-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+  .secret-grid figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .secret-grid figcaption {
+    font: 500 10px var(--font-mono);
+    color: var(--t-label);
+  }
+  .cave {
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--t-border);
+    background: #000;
+  }
+  .boxes {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .box {
+    border: 1px solid var(--t-border);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .box.value {
+    border-color: var(--t-accent);
+  }
+  .box-t {
+    font-size: 22px;
+    line-height: 1.35;
+  }
+  .box-x {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--t-fg-2);
+  }
+</style>

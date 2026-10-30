@@ -1,0 +1,80 @@
+---
+import { natColor, particleVars, SPEC_SIZES, threadBg, type Nature, type SpecSize } from '../lib/natures';
+
+interface Props {
+  nature: Nature;
+  size?: SpecSize;
+  /** Sempre no estado ativo (espécime grande da página da natureza). */
+  on?: boolean;
+}
+
+const { nature: n, size = 'md', on = false } = Astro.props;
+const { px, k } = SPEC_SIZES[size];
+const rest = size === 'sm' ? 6 : 10;
+const active = Math.round(n.particles.activeGap * k * 100) / 100;
+const thread = n.particles.shape.thread ? threadBg(n.hue, size === 'lg' ? 1.5 : 1) : 'none';
+const vars = particleVars(n, size);
+---
+
+<span
+  class:list={['spec', size, { on }]}
+  style={`--px:${px}px;--gap-r:${rest}px;--gap-a:${active}px;--thread:${size === 'sm' ? 'none' : thread};--c:${natColor(n.hue)}`}
+  aria-hidden="true"
+>
+  {vars.map((v) => <span style={v} />)}
+</span>
+
+<style>
+  .spec {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-r);
+    transition: gap 0.6s;
+  }
+  .spec.md {
+    height: 30px;
+    padding-left: 6px;
+  }
+  .spec.lg {
+    height: 90px;
+    padding: 0 24px;
+    transition-duration: 0.8s;
+  }
+  .spec > span {
+    width: var(--px);
+    height: var(--px);
+    flex: none;
+    background: var(--bg);
+    border: var(--bd);
+    border-radius: var(--r-rad);
+    transition: all 0.6s var(--ease-spec);
+  }
+  .spec.lg > span {
+    transition-duration: 0.8s;
+  }
+
+  /* Estado ativo: espécime fixo, ou hover/foco/seleção do elemento que o contém */
+  .spec.on,
+  :global(.spec-host:hover) .spec,
+  :global(.spec-host:focus-visible) .spec,
+  :global(.spec-host[aria-current]) .spec {
+    gap: var(--gap-a);
+    background: var(--thread);
+  }
+  .spec.on > span,
+  :global(.spec-host:hover) .spec > span,
+  :global(.spec-host:focus-visible) .spec > span,
+  :global(.spec-host[aria-current]) .spec > span {
+    border-radius: var(--a-rad);
+    transform: var(--a-tr);
+    opacity: var(--a-op);
+    box-shadow: var(--a-sh);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spec,
+    .spec > span {
+      transition: none !important;
+    }
+  }
+</style>

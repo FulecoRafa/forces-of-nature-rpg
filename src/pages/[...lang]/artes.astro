@@ -1,0 +1,188 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLocalized } from '../../lib/content';
+import { artKey, creditFor } from '../../data/art';
+import { artContactUrl, repoUrl } from '../../data/site';
+import { langPaths, useI18n } from '../../i18n';
+
+export const getStaticPaths = langPaths;
+
+const { lang, t, u } = useI18n(Astro.url);
+
+// Todas as imagens de src/assets/arte, com as páginas onde aparecem.
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/arte/*.{png,jpg,jpeg,webp,avif}', { eager: true });
+const uses = new Map<string, { label: string; href: string }[]>();
+const use = (img: ImageMetadata | undefined, label: string, href: string) => {
+  if (!img) return;
+  const k = artKey(img.src);
+  const list = uses.get(k) ?? [];
+  if (!list.some((x) => x.href === href)) list.push({ label, href });
+  uses.set(k, list);
+};
+for (const s of await getLocalized('societies', lang)) {
+  const href = `/sociedades/${s.slug}`;
+  use(s.data.heroImage, s.data.title, href);
+  s.data.images.forEach((im) => use(im.src, s.data.title, href));
+  use(s.data.secret?.image, s.data.title, href);
+}
+for (const s of await getLocalized('stories', lang)) {
+  const href = `/lore/${s.slug}`;
+  use(s.data.cover, s.data.title, href);
+  for (const m of (s.body ?? '').matchAll(/assets\/arte\/([^)\s"]+)/g)) {
+    const k = artKey(m[1]);
+    uses.set(k, [...(uses.get(k) ?? []).filter((x) => x.href !== href), { label: s.data.title, href }]);
+  }
+}
+for (const e of await getLocalized('entries', lang)) use(e.data.image, e.data.title, e.data.href ?? `/wiki/${e.slug}`);
+
+const gallery = Object.entries(files)
+  .map(([path, mod]) => ({ file: path.split('/').pop()!, img: mod.default }))
+  .map((g) => ({ ...g, credit: creditFor(g.file), uses: uses.get(artKey(g.file)) ?? [] }))
+  .sort((a, b) => Number(Boolean(a.credit)) - Number(Boolean(b.credit)) || b.uses.length - a.uses.length);
+const pending = gallery.filter((g) => !g.credit).length;
+---
+
+<BaseLayout title={t.art.title} description={t.art.description}>
+  <main>
+    <section class="hero rule-b">
+      <div class="kicker"><span>{t.art.kicker[0]}</span><span>{t.art.kicker[1]}</span></div>
+      <h1 class="h1">{t.art.title}</h1>
+      <p class="lead">{t.art.lead}</p>
+      <div class="ctas">
+        <a class="btn" href={artContactUrl(lang)}>{t.art.contact}</a>
+        <a class="btn ghost" href={repoUrl}>{t.art.contactAlt}</a>
+      </div>
+    </section>
+
+    <section class="section rule-b">
+      <h2 class="h2">{t.art.howTitle}</h2>
+      <ol class="cells steps">
+        {
+          t.art.steps.map((s, i) => (
+            <li>
+              <span class="label">
+                {String(i + 1).padStart(2, '0')} · {s.k}
+              </span>
+              <span class="step-t">{s.t}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="h2">{t.art.galleryTitle}</h2>
+        <span class="label">{pending} {t.art.galleryHint}</span>
+      </div>
+      <div class="gallery">
+        {
+          gallery.map((g) => (
+            <figure class="piece">
+              <div class="frame">
+                <Image src={g.img} alt="" widths={[400, 800]} sizes="(min-width: 900px) 33vw, 100vw" />
+                {g.credit ? (
+                  <span class="ai-badge credit md">
+                    {t.art.credited} {g.credit.artist}
+                  </span>
+                ) : (
+                  <span class="ai-badge md">
+                    <span class="b">{t.ai.badge}</span>
+                  </span>
+                )}
+              </div>
+              <figcaption>
+                <span class="label">{g.file}</span>
+                {g.uses.length ? (
+                  <span class="uses">
+                    <span class="label-sm">{t.art.usedIn}</span>
+                    {g.uses.map((x) => (
+                      <a href={u(x.href)}>{x.label}</a>
+                    ))}
+                  </span>
+                ) : (
+                  <span class="label-sm">{t.art.unused}</span>
+                )}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <div class="ctas end">
+        <a class="btn" href={artContactUrl(lang)}>{t.art.contact}</a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: var(--pad-section);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .kicker {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  .ctas {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .ctas.end {
+    margin-top: 32px;
+  }
+  .steps {
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  }
+  .steps li {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .step-t {
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .gallery {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+  }
+  .piece {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .piece .frame {
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+  }
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .uses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+    font-size: 14px;
+  }
+</style>

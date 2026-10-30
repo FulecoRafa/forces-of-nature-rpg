@@ -1,0 +1,656 @@
+{
+  "groups": [
+    {
+      "id": "fis",
+      "label": "FÍSICAS FUNDAMENTAIS"
+    },
+    {
+      "id": "termo",
+      "label": "TERMODINÂMICAS"
+    },
+    {
+      "id": "temp",
+      "label": "TEMPORAL"
+    },
+    {
+      "id": "psi",
+      "label": "PSÍQUICAS"
+    }
+  ],
+  "natures": [
+    {
+      "id": "gravidade",
+      "name": "Gravidade",
+      "symbol": "G",
+      "hue": 285,
+      "color": "oklch(0.56 0.16 285)",
+      "group": "fis",
+      "short": "Atrai, pesa, curva trajetórias.",
+      "description": "Toda massa puxa toda massa. Quem manipula a gravidade decide para onde é o chão, quanto algo pesa e o que cai em direção a quê.",
+      "can": "Atrair e repelir corpos, alterar o peso, criar chãos locais, abrir buracos de minhoca.",
+      "uiBehavior": "Elementos se agrupam em direção ao centro. Tipografia pesada e apertada.",
+      "scale": "Infinito, mas fraca. Ganha força com massa e proximidade.",
+      "typography": {
+        "fw": 600,
+        "fs": "normal",
+        "ls": "-0.06em",
+        "sh": "none",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "50%",
+          "fill": true
+        },
+        "activeGap": 2,
+        "active": {
+          "x": [
+            12,
+            6,
+            0,
+            -6,
+            -12
+          ],
+          "y": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            0.7,
+            0.9,
+            1.5,
+            0.9,
+            0.7
+          ],
+          "o": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "tempo",
+          "text": "Curvar o espaço retarda o tempo de quem está perto."
+        },
+        {
+          "with": "entalpia",
+          "text": "Comprimir matéria gera calor."
+        },
+        {
+          "with": "forca-forte",
+          "text": "Só a supera em escalas estelares, como no colapso de uma estrela."
+        }
+      ]
+    },
+    {
+      "id": "forca-forte",
+      "name": "Força forte",
+      "symbol": "αₛ",
+      "hue": 70,
+      "color": "oklch(0.56 0.16 70)",
+      "group": "fis",
+      "short": "Une o que está próximo. Inquebrável de perto.",
+      "description": "A força que mantém o núcleo inteiro. Em curtíssima distância nada a vence; um passo além, ela desaparece.",
+      "can": "Fundir, tornar indestrutível, impedir que algo se separe. Romper a ligação libera energia brutal.",
+      "uiBehavior": "Elementos colam uns nos outros e viram um bloco só. Tipografia em negrito, sem respiro.",
+      "scale": "Curtíssimo. Exige contato.",
+      "typography": {
+        "fw": 700,
+        "fs": "normal",
+        "ls": "-0.03em",
+        "sh": "none",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "1px",
+          "fill": true
+        },
+        "activeGap": 0,
+        "active": {
+          "x": [
+            6,
+            3,
+            0,
+            -3,
+            -6
+          ],
+          "y": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            1.05,
+            1.05,
+            1.05,
+            1.05,
+            1.05
+          ],
+          "o": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "forca-fraca",
+          "text": "Uma prende o núcleo; a outra o desfaz por dentro."
+        },
+        {
+          "with": "entalpia",
+          "text": "Quebrar uma ligação forte é a maior fonte de energia que existe."
+        }
+      ]
+    },
+    {
+      "id": "forca-fraca",
+      "name": "Força fraca",
+      "symbol": "W",
+      "hue": 150,
+      "color": "oklch(0.56 0.16 150)",
+      "group": "fis",
+      "short": "Transmuta e faz decair.",
+      "description": "A força da transformação: muda a identidade das partículas e faz a matéria instável decair, pouco a pouco.",
+      "can": "Transmutar materiais, acelerar ou frear decaimento, tornar algo instável.",
+      "uiBehavior": "Cada elemento muda de forma e esmaece em sequência. Tipografia leve.",
+      "scale": "Curtíssimo, efeito lento e cumulativo.",
+      "typography": {
+        "fw": 300,
+        "fs": "normal",
+        "ls": "0.01em",
+        "sh": "none",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": [
+            "50%",
+            "40%",
+            "25%",
+            "10%",
+            "0"
+          ],
+          "fill": [
+            true,
+            true,
+            false,
+            false,
+            false
+          ]
+        },
+        "activeGap": 10,
+        "active": {
+          "x": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "y": [
+            0,
+            1,
+            2,
+            4,
+            6
+          ],
+          "r": [
+            0,
+            10,
+            25,
+            45,
+            60
+          ],
+          "s": [
+            1,
+            0.95,
+            0.85,
+            0.75,
+            0.6
+          ],
+          "o": [
+            1,
+            0.8,
+            0.6,
+            0.4,
+            0.2
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "forca-forte",
+          "text": "Desfaz o que a força forte une."
+        },
+        {
+          "with": "entropia",
+          "text": "Todo decaimento é irreversível e aumenta a desordem."
+        }
+      ]
+    },
+    {
+      "id": "entropia",
+      "name": "Entropia",
+      "symbol": "S",
+      "hue": 200,
+      "color": "oklch(0.56 0.16 200)",
+      "group": "termo",
+      "short": "Desordena, dispersa, desgasta.",
+      "description": "A tendência de tudo se espalhar e se misturar. Manipulá-la é acelerar a ruína ou, com grande esforço, devolver ordem a algo.",
+      "can": "Envelhecer, corroer, dispersar calor e atenção; ou reorganizar o que se desfez.",
+      "uiBehavior": "Elementos se espalham em ângulos aleatórios. Tipografia espaçada e desalinhada.",
+      "scale": "Local, mas se propaga.",
+      "typography": {
+        "fw": 400,
+        "fs": "normal",
+        "ls": "0.14em",
+        "sh": "none",
+        "tr": "rotate(-1.5deg)"
+      },
+      "particles": {
+        "shape": {
+          "rad": "2px",
+          "fill": true
+        },
+        "activeGap": 14,
+        "active": {
+          "x": [
+            -6,
+            8,
+            -3,
+            10,
+            -9
+          ],
+          "y": [
+            -8,
+            6,
+            10,
+            -7,
+            4
+          ],
+          "r": [
+            25,
+            -40,
+            70,
+            -15,
+            110
+          ],
+          "s": [
+            1,
+            0.8,
+            1.1,
+            0.7,
+            0.9
+          ],
+          "o": [
+            1,
+            0.9,
+            1,
+            0.8,
+            0.9
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "tempo",
+          "text": "Dá direção ao tempo: o passado é o mais ordenado."
+        },
+        {
+          "with": "memorias",
+          "text": "Lembrar é resistir à desordem."
+        },
+        {
+          "with": "entalpia",
+          "text": "Juntas decidem o que acontece sozinho."
+        }
+      ]
+    },
+    {
+      "id": "entalpia",
+      "name": "Entalpia",
+      "symbol": "H",
+      "hue": 35,
+      "color": "oklch(0.56 0.16 35)",
+      "group": "termo",
+      "short": "Guarda e libera calor.",
+      "description": "A energia contida em algo, pronta para sair como calor. Quem a manipula aquece, congela, funde ou detona.",
+      "can": "Queimar, congelar, fundir, explodir, extrair energia de reações.",
+      "uiBehavior": "Elementos brilham e sobem como chama. Tipografia com halo quente.",
+      "scale": "Médio. Proporcional à matéria envolvida.",
+      "typography": {
+        "fw": 500,
+        "fs": "normal",
+        "ls": "-0.01em",
+        "sh": "0 0 12px oklch(0.7 0.18 35 / .55)",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "50%",
+          "fill": true,
+          "glow": true
+        },
+        "activeGap": 8,
+        "active": {
+          "x": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "y": [
+            -4,
+            -10,
+            -14,
+            -8,
+            -2
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            0.9,
+            1.1,
+            1.25,
+            1.1,
+            0.9
+          ],
+          "o": [
+            0.8,
+            1,
+            1,
+            1,
+            0.8
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "entropia",
+          "text": "Juntas definem a energia livre: o que pode acontecer espontaneamente."
+        },
+        {
+          "with": "gravidade",
+          "text": "Compressão gravitacional esquenta."
+        }
+      ]
+    },
+    {
+      "id": "tempo",
+      "name": "Tempo",
+      "symbol": "t",
+      "hue": 245,
+      "color": "oklch(0.56 0.16 245)",
+      "group": "temp",
+      "short": "Acelera, retarda, repete.",
+      "description": "A sequência de tudo. Manipular o tempo é esticar ou comprimir instantes, e em casos extremos ver ecos do que já foi.",
+      "can": "Acelerar ou retardar um corpo, congelar um instante, ver ecos do passado próximo.",
+      "uiBehavior": "Elementos deixam rastro e eco. Tipografia com sombras repetidas.",
+      "scale": "Local. Custa caro manter.",
+      "typography": {
+        "fw": 500,
+        "fs": "normal",
+        "ls": "-0.02em",
+        "sh": "3px 0 0 oklch(0.55 0.16 245 / .28), 6px 0 0 oklch(0.55 0.16 245 / .14)",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "50%",
+          "fill": true
+        },
+        "activeGap": 4,
+        "active": {
+          "x": [
+            16,
+            12,
+            8,
+            4,
+            0
+          ],
+          "y": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1
+          ],
+          "o": [
+            0.12,
+            0.25,
+            0.45,
+            0.7,
+            1
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "gravidade",
+          "text": "Massa retarda o tempo ao redor."
+        },
+        {
+          "with": "entropia",
+          "text": "Sem desordem crescente, não haveria antes e depois."
+        },
+        {
+          "with": "memorias",
+          "text": "Memória é o tempo guardado em alguém."
+        }
+      ]
+    },
+    {
+      "id": "alma",
+      "name": "Alma",
+      "symbol": "Ψ",
+      "hue": 330,
+      "color": "oklch(0.56 0.16 330)",
+      "group": "psi",
+      "short": "Fios que ligam seres entre si.",
+      "description": "A força que anima os seres. Seus usuários tecem fios finos como teias de aranha, com luz própria, que ligam almas de pessoas e animais.",
+      "can": "Ligar-se a animais e ver pelos olhos deles, nutrir o corpo, controlar o ambiente, erguer pessoas por fios. Em Silence Penascle, redirecionar a loucura para outra pessoa.",
+      "uiBehavior": "Um elemento ganha aura e um fio pálido atravessa todos. Tipografia itálica com brilho suave.",
+      "scale": "Visível onde há concentração de magia; os fios ligam quem está conectado.",
+      "typography": {
+        "fw": 400,
+        "fs": "italic",
+        "ls": "0",
+        "sh": "0 0 14px oklch(0.7 0.16 330 / .5)",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "50%",
+          "fill": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "ring": true,
+          "thread": true
+        },
+        "activeGap": 10,
+        "active": {
+          "x": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "y": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            0.5,
+            0.6,
+            1.3,
+            0.6,
+            0.5
+          ],
+          "o": [
+            0.2,
+            0.3,
+            1,
+            0.3,
+            0.2
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "memorias",
+          "text": "Na transição, os fios trazem à tona os mortos que o iniciado carrega."
+        },
+        {
+          "with": "tempo",
+          "text": "Drenar a alma de outros prolonga a vida de quem drena."
+        },
+        {
+          "with": "entropia",
+          "text": "O desgaste da vontade é desordem da alma."
+        }
+      ]
+    },
+    {
+      "id": "memorias",
+      "name": "Memórias",
+      "symbol": "μ",
+      "hue": 105,
+      "color": "oklch(0.56 0.16 105)",
+      "group": "psi",
+      "short": "Lê, grava e apaga o vivido.",
+      "description": "O registro do que foi vivido, em pessoas e talvez em lugares. Manipulá-lo é ler, implantar ou apagar lembranças.",
+      "can": "Ler lembranças, apagar, implantar falsas memórias, ver o passado de um objeto.",
+      "uiBehavior": "Elementos com contorno tracejado; alguns somem e deixam lacunas. Tipografia itálica.",
+      "scale": "Toque ou proximidade.",
+      "typography": {
+        "fw": 400,
+        "fs": "italic",
+        "ls": "0.02em",
+        "sh": "none",
+        "tr": "none"
+      },
+      "particles": {
+        "shape": {
+          "rad": "2px",
+          "fill": false,
+          "dashed": true
+        },
+        "activeGap": 10,
+        "active": {
+          "x": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "y": [
+            0,
+            0,
+            -3,
+            0,
+            3
+          ],
+          "r": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "s": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "o": [
+            1,
+            0,
+            1,
+            0.25,
+            1
+          ]
+        }
+      },
+      "interactions": [
+        {
+          "with": "alma",
+          "text": "Sem memória, a alma não reconhece a si mesma."
+        },
+        {
+          "with": "tempo",
+          "text": "Cada lembrança é um pedaço de tempo guardado."
+        },
+        {
+          "with": "entropia",
+          "text": "Esquecer é a entropia agindo na mente."
+        }
+      ]
+    }
+  ]
+}

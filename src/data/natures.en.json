@@ -1,0 +1,111 @@
+{
+  "groups": {
+    "fis": "FUNDAMENTAL PHYSICS",
+    "termo": "THERMODYNAMIC",
+    "temp": "TEMPORAL",
+    "psi": "PSYCHIC"
+  },
+  "natures": {
+    "gravidade": {
+      "name": "Gravity",
+      "short": "Attracts, weighs down, bends trajectories.",
+      "description": "All mass pulls on all mass. Whoever manipulates gravity decides which way is down, how much something weighs and what falls toward what.",
+      "can": "Attract and repel bodies, change weight, create local floors, open wormholes.",
+      "uiBehavior": "Elements cluster toward the center. Heavy, tight typography.",
+      "scale": "Infinite, but weak. Grows stronger with mass and proximity.",
+      "interactions": [
+        "Bending space slows time for those nearby.",
+        "Compressing matter generates heat.",
+        "Only overcomes it at stellar scales, as in the collapse of a star."
+      ]
+    },
+    "forca-forte": {
+      "name": "Strong force",
+      "short": "Binds what is close. Unbreakable up close.",
+      "description": "The force that holds the nucleus together. At extremely short range nothing defeats it; one step further, it vanishes.",
+      "can": "Fuse, make indestructible, keep something from coming apart. Breaking the bond releases brutal energy.",
+      "uiBehavior": "Elements stick to one another and become a single block. Bold typography, no breathing room.",
+      "scale": "Extremely short. Requires contact.",
+      "interactions": [
+        "One holds the nucleus together; the other unravels it from within.",
+        "Breaking a strong bond is the greatest source of energy there is."
+      ]
+    },
+    "forca-fraca": {
+      "name": "Weak force",
+      "short": "Transmutes and causes decay.",
+      "description": "The force of transformation: it changes the identity of particles and makes unstable matter decay, little by little.",
+      "can": "Transmute materials, speed up or slow down decay, make something unstable.",
+      "uiBehavior": "Each element changes shape and fades in sequence. Light typography.",
+      "scale": "Extremely short, slow and cumulative effect.",
+      "interactions": [
+        "Undoes what the strong force binds.",
+        "All decay is irreversible and increases disorder."
+      ]
+    },
+    "entropia": {
+      "name": "Entropy",
+      "short": "Disorders, disperses, wears down.",
+      "description": "The tendency of everything to spread out and mix. Manipulating it means hastening ruin or, with great effort, restoring order to something.",
+      "can": "Age, corrode, disperse heat and attention; or reorganize what has come undone.",
+      "uiBehavior": "Elements scatter at random angles. Spaced-out, misaligned typography.",
+      "scale": "Local, but it spreads.",
+      "interactions": [
+        "Gives time its direction: the past is the most ordered.",
+        "To remember is to resist disorder.",
+        "Together they decide what happens on its own."
+      ]
+    },
+    "entalpia": {
+      "name": "Enthalpy",
+      "short": "Stores and releases heat.",
+      "description": "The energy contained in something, ready to come out as heat. Whoever manipulates it heats, freezes, melts or detonates.",
+      "can": "Burn, freeze, melt, explode, extract energy from reactions.",
+      "uiBehavior": "Elements glow and rise like a flame. Typography with a warm halo.",
+      "scale": "Medium. Proportional to the matter involved.",
+      "interactions": [
+        "Together they define free energy: what can happen spontaneously.",
+        "Gravitational compression heats things up."
+      ]
+    },
+    "tempo": {
+      "name": "Time",
+      "short": "Speeds up, slows down, repeats.",
+      "description": "The sequence of everything. Manipulating time means stretching or compressing instants and, in extreme cases, seeing echoes of what once was.",
+      "can": "Speed up or slow down a body, freeze an instant, see echoes of the recent past.",
+      "uiBehavior": "Elements leave trails and echoes. Typography with repeated shadows.",
+      "scale": "Local. Costly to sustain.",
+      "interactions": [
+        "Mass slows time around it.",
+        "Without growing disorder, there would be no before and after.",
+        "Memory is time stored in someone."
+      ]
+    },
+    "alma": {
+      "name": "Soul",
+      "short": "Threads that bind beings to one another.",
+      "description": "The force that animates living beings. Its users weave threads as fine as spider silk, glowing with their own light, that link the souls of people and animals.",
+      "can": "Bond with animals and see through their eyes, nourish the body, control the environment, lift people by threads. In Silence Penascle, redirect madness onto another person.",
+      "uiBehavior": "One element gains an aura and a pale thread runs through them all. Italic typography with a soft glow.",
+      "scale": "Visible wherever magic is concentrated; the threads link those who are connected.",
+      "interactions": [
+        "During the transition, the threads bring to the surface the dead the initiate carries.",
+        "Draining the souls of others prolongs the life of the one who drains.",
+        "The erosion of will is disorder of the soul."
+      ]
+    },
+    "memorias": {
+      "name": "Memories",
+      "short": "Reads, records and erases what was lived.",
+      "description": "The record of what has been lived, in people and perhaps in places. Manipulating it means reading, implanting or erasing memories.",
+      "can": "Read memories, erase them, implant false memories, see an object's past.",
+      "uiBehavior": "Elements with dashed outlines; some vanish and leave gaps. Italic typography.",
+      "scale": "Touch or proximity.",
+      "interactions": [
+        "Without memory, the soul does not recognize itself.",
+        "Each memory is a piece of stored time.",
+        "Forgetting is entropy at work in the mind."
+      ]
+    }
+  }
+}

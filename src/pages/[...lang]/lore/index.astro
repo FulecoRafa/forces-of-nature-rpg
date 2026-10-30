@@ -1,0 +1,263 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getNatureMap, natColor, natColorDark } from '../../../lib/natures';
+import { getStories } from '../../../lib/stories';
+import { getLocalizedMap } from '../../../lib/content';
+import { lore } from '../../../data/lore.index';
+import AiBadge from '../../../components/AiBadge.astro';
+import { langPaths, useI18n } from '../../../i18n';
+
+export const getStaticPaths = langPaths;
+
+const { lang, t, u } = useI18n(Astro.url);
+const { chronology, places } = lore(lang);
+const natures = await getNatureMap(lang);
+const societies = await getLocalizedMap('societies', lang);
+const stories = await getStories(lang);
+---
+
+<BaseLayout title={t.lore.title} description={t.lore.description}>
+  <main>
+    <section class="hero rule-b">
+      <div class="kicker"><span>{t.lore.kicker[0]}</span><span>{t.lore.kicker[1]}</span></div>
+      <h1 class="h1">{t.lore.title}</h1>
+      <p class="lead">{t.lore.lead}</p>
+    </section>
+
+    <section class="section rule-b stories">
+      <h2 class="h2">{t.lore.stories}</h2>
+      <div class="story-grid">
+        {
+          stories.map((s) => {
+            const soc = societies[s.data.society];
+            const n = natures[s.data.nature];
+            const dark = soc.data.theme === 'penrose';
+            return (
+              <a class="story plain" href={u(`/lore/${s.slug}`)} data-theme={soc.data.theme}>
+                <div class="story-cover">
+                  <Image src={s.data.cover} alt="" widths={[480, 960]} sizes="(min-width: 900px) 50vw, 100vw" class="cover" />
+                  <AiBadge src={s.data.cover} link={false} />
+                </div>
+                <div class="story-body">
+                  <span class="story-meta">
+                    <span>{soc.data.title.toUpperCase()}</span>
+                    <span style={`color:${dark ? natColorDark(n.hue) : natColor(n.hue)}`}>
+                      {n.symbol} · {n.name.toUpperCase()}
+                    </span>
+                    <span class="min">{s.data.readingMinutes} {t.common.minutes}</span>
+                    {s.data.spoiler && <span class="spoiler">{t.common.spoiler}</span>}
+                  </span>
+                  <span class="story-title">{s.data.title}</span>
+                  <span class="story-sum">{s.data.summary}</span>
+                </div>
+              </a>
+            );
+          })
+        }
+      </div>
+    </section>
+
+    <section class="split rule-b">
+      <div class="col left">
+        <div class="section-head">
+          <h2 class="h2">{t.lore.chronology}</h2>
+          <span class="label" style="color:var(--accent)">{t.lore.orderTbd}</span>
+        </div>
+        <ol class="chrono">
+          {
+            chronology.map((e) => (
+              <li>
+                <span class="mark" style={`background:${e.nature ? natColor(natures[e.nature].hue) : 'var(--accent)'}`} />
+                <span class="label">{e.era}</span>
+                <span class="c-title">{e.title}</span>
+                <span class="c-text">{e.text}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div class="col">
+        <h2 class="h2">{t.lore.places}</h2>
+        <div class="places">
+          {
+            places.map((p) => (
+              <a class="place plain" href={u(p.href)}>
+                <span class="p-name">{p.name}</span>
+                <span class="label p-kind">{p.kind}</span>
+                <span class="p-text">{p.text}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: clamp(32px, 6vw, 80px) var(--pad-x);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .kicker {
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .stories {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 16px;
+  }
+  .story {
+    display: flex;
+    flex-direction: column;
+    background: var(--t-card, var(--t-bg));
+    color: var(--t-fg);
+    border: 1px solid var(--t-border-2);
+  }
+  .story[data-theme='penrose'] {
+    border-color: transparent;
+  }
+  .story[data-theme='penrose']:hover,
+  .story[data-theme='penrose']:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+  .story[data-theme='silence']:hover,
+  .story[data-theme='silence']:focus-visible {
+    border-color: var(--t-fg);
+  }
+  .story-cover {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #000;
+  }
+  .story[data-theme='silence'] .story-cover {
+    background: #e6e5e0;
+  }
+  .story-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .story-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .story[data-theme='penrose'] .story-meta {
+    color: var(--t-accent);
+  }
+  .story[data-theme='penrose'] .min {
+    color: var(--t-label);
+  }
+  .spoiler {
+    color: var(--accent);
+  }
+  .story-title {
+    font-weight: var(--t-title-fw);
+    font-size: 32px;
+    letter-spacing: var(--t-title-ls);
+    line-height: 1;
+  }
+  .story[data-theme='penrose'] .story-title {
+    letter-spacing: -0.05em;
+  }
+  .story-sum {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--t-fg-2);
+  }
+  .story[data-theme='silence'] .story-sum {
+    color: var(--t-fg-3);
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  }
+  .col {
+    padding: var(--pad-section);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .col.left {
+    border-right: 1px solid var(--ink);
+  }
+  .chrono {
+    margin: 0 0 0 6px;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--ink);
+  }
+  .chrono li {
+    position: relative;
+    padding: 0 0 26px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mark {
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border: 1px solid var(--ink);
+  }
+  .c-title {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .c-text,
+  .p-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink-3);
+    max-width: 32em;
+  }
+  .places {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--ink);
+  }
+  .place {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .place:hover {
+    background: var(--paper-2);
+  }
+  .p-name {
+    font-size: 19px;
+    font-weight: 500;
+  }
+  .p-kind {
+    text-align: right;
+  }
+  .p-text {
+    grid-column: 1 / -1;
+  }
+</style>

@@ -1,0 +1,238 @@
+---
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getNatureMap, natColor, natColorDark } from '../../../lib/natures';
+import { getStories, getStoryWithSociety } from '../../../lib/stories';
+import AiBadge from '../../../components/AiBadge.astro';
+import { langParam, LANGS, useI18n } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const paths = await Promise.all(
+    LANGS.map(async (lang) => (await getStories(lang)).map((s) => ({ params: { lang: langParam(lang), slug: s.slug } }))),
+  );
+  return paths.flat();
+}
+
+const { slug } = Astro.params;
+const { lang, t, u } = useI18n(Astro.url);
+const { story, society } = await getStoryWithSociety(lang, slug!);
+const { Content } = await render(story);
+const nature = (await getNatureMap(lang))[story.data.nature];
+const theme = society.data.theme;
+const dark = theme === 'penrose';
+const hasDescent = /<hr[^>]*class="descent"/.test(story.body ?? '');
+
+const stories = await getStories(lang);
+const idx = stories.findIndex((s) => s.slug === story.slug);
+const next = stories[idx + 1];
+const other = next ?? stories.find((s) => s.slug !== story.slug);
+const bg = dark ? '#13111d' : '#f8f7f3';
+---
+
+<BaseLayout title={story.data.title} description={story.data.summary} bodyBg={hasDescent ? '#0d0d12' : bg}>
+  <main class:list={['reader', theme, { 'has-descent': hasDescent }]} data-theme={theme}>
+    <div class="cover-wrap">
+      <Image src={story.data.cover} alt="" widths={[768, 1280, 1920]} sizes="100vw" class="cover" loading="eager" />
+      <div class="fade"></div>
+      <AiBadge src={story.data.cover} />
+    </div>
+    <article>
+      <a class="back plain" href={u('/lore')}>{t.lore.back}</a>
+      <span class="meta">
+        <span>{society.data.title.toUpperCase()}</span>
+        <span style={`color:${dark ? natColorDark(nature.hue) : natColor(nature.hue)}`}>
+          {nature.symbol} · {nature.name.toUpperCase()}
+        </span>
+        {story.data.spoiler && <span class="spoiler">{t.common.spoiler}</span>}
+        {!story.translated && lang !== 'pt' && <span class="spoiler">{t.common.untranslated}</span>}
+      </span>
+      <h1>{story.data.title}</h1>
+      <div class="prose">
+        <Content />
+      </div>
+    </article>
+    <div class="end-wrap">
+      <nav class="end" aria-label={t.lore.continue}>
+        <a class="end-card plain" href={u(`/sociedades/${society.slug}`)}>
+          <span class="label-x">{t.common.society}</span>
+          <span class="end-title">{society.data.title} →</span>
+        </a>
+        {
+          other && (
+            <a class="end-card plain" href={u(`/lore/${other.slug}`)}>
+              <span class="label-x">{next ? t.lore.next : t.lore.other}</span>
+              <span class="end-title">{other.data.title} →</span>
+            </a>
+          )
+        }
+      </nav>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .reader {
+    --bleed: clamp(0px, 6vw, 80px);
+    --cover-bg: #000;
+    --meta: var(--t-accent);
+    --back-hover: #fff;
+    background: var(--t-bg);
+    color: #e9e3ea;
+    overflow-x: clip;
+  }
+  .reader.silence {
+    --cover-bg: #e6e5e0;
+    --meta: var(--t-label);
+    --back-hover: #000;
+    color: var(--t-fg);
+  }
+  .cover-wrap {
+    position: relative;
+    aspect-ratio: 21 / 8;
+    min-height: 240px;
+    background: var(--cover-bg);
+  }
+  .cover-wrap :global(img) {
+    position: absolute;
+    inset: 0;
+  }
+  .fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 40%, var(--t-bg));
+  }
+  article,
+  .end {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 32px);
+  }
+  article {
+    position: relative;
+    margin-top: -80px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .back {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .silence .back {
+    color: var(--t-fg-3);
+  }
+  .back:hover {
+    color: var(--back-hover);
+  }
+  .meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    color: var(--meta);
+  }
+  .spoiler {
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-weight: var(--t-title-fw);
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 0.9;
+    letter-spacing: var(--t-title-ls);
+  }
+
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 19px;
+    line-height: 1.72;
+    color: var(--t-body);
+  }
+  .prose :global(p) {
+    margin: 0;
+  }
+  .prose :global(strong) {
+    color: var(--t-strong);
+  }
+  .prose :global(figure) {
+    margin: 12px calc(-1 * var(--bleed));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .prose :global(figure img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #000;
+  }
+  .prose :global(figcaption) {
+    font: 500 10px var(--font-mono);
+    color: var(--t-label);
+    text-transform: uppercase;
+  }
+
+  /* Descida às cavernas: o resto do conto em fundo escuro, de ponta a ponta */
+  .prose :global(.descent) {
+    --t-body: #d9d6e2;
+    --t-strong: #fff;
+    --t-label: #8e8a9c;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px calc(50% - 50vw) 0;
+    padding: 120px calc(50vw - 50%) 0;
+    background: linear-gradient(var(--t-bg), #0d0d12 320px);
+    color: var(--t-body);
+  }
+
+  .end-wrap {
+    padding: 22px 0 clamp(48px, 8vw, 96px);
+  }
+  .end {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--t-border);
+  }
+  .end-card {
+    border: 1px solid var(--t-border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .end-card:hover,
+  .end-card:focus-visible {
+    border-color: var(--t-accent);
+  }
+  .silence .end-card:hover {
+    border-color: var(--t-fg);
+  }
+  .label-x {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .end-title {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .has-descent .end-wrap {
+    background: #0d0d12;
+    --t-border: #2d2b3a;
+    --t-label: #8e8a9c;
+    color: #e7e5ee;
+  }
+  .has-descent .end-card:hover {
+    border-color: oklch(0.72 0.14 330);
+  }
+</style>

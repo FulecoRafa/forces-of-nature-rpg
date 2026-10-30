@@ -1,0 +1,173 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AiBadge from '../../../components/AiBadge.astro';
+import { getSocieties } from '../../../lib/content';
+import { getStories } from '../../../lib/stories';
+import { getNatureMap, natColor, natColorDark } from '../../../lib/natures';
+import { langPaths, useI18n } from '../../../i18n';
+
+export const getStaticPaths = langPaths;
+
+const { lang, t, u } = useI18n(Astro.url);
+const societies = await getSocieties(lang);
+const stories = await getStories(lang);
+const natures = await getNatureMap(lang);
+---
+
+<BaseLayout title={t.societies.title} description={t.societies.description}>
+  <main>
+    <section class="hero rule-b">
+      <div class="kicker"><span>{t.societies.kicker[0]}</span><span>{t.societies.kicker[1]}</span></div>
+      <h1 class="h1">{t.societies.title}</h1>
+      <p class="lead">{t.societies.lead}</p>
+    </section>
+
+    <section class="section list">
+      {
+        societies.map((s) => {
+          const n = natures[s.data.nature];
+          const dark = s.data.theme === 'penrose';
+          const count = stories.filter((st) => st.data.society === s.slug).length;
+          return (
+            <a class="soc plain" href={u(`/sociedades/${s.slug}`)} data-theme={s.data.theme}>
+              <span class="img">
+                {s.data.heroImage && (
+                  <>
+                    <Image src={s.data.heroImage} alt="" widths={[480, 960]} sizes="(min-width: 760px) 45vw, 100vw" class="cover" />
+                    <AiBadge src={s.data.heroImage} link={false} />
+                  </>
+                )}
+              </span>
+              <span class="txt">
+                <span class="meta">
+                  <span>{s.data.code}</span>
+                  <span>{s.data.kind.toUpperCase()}</span>
+                  <span style={`color:${dark ? natColorDark(n.hue) : natColor(n.hue)}`}>
+                    {n.symbol} · {n.name.toUpperCase()}
+                  </span>
+                </span>
+                <span class="name">{s.data.title}</span>
+                <span class="sum">{s.data.cardSummary}</span>
+                <span class="meta foot">
+                  <span>{s.data.tech ? t.common.tech : t.common.noTech}</span>
+                  {count > 0 && <span>{t.societies.stories(count)}</span>}
+                  {!s.translated && lang !== 'pt' && <span>{t.common.untranslated}</span>}
+                  <span class="go">→</span>
+                </span>
+              </span>
+            </a>
+          );
+        })
+      }
+      <div class="soc soon">
+        <span class="label" style="color:inherit">SOC-{String(societies.length + 1).padStart(2, '0')} · {t.common.inWriting}</span>
+        <span class="soon-title">{t.home.soonTitle}</span>
+        <span class="soon-text">{t.societies.soonText}</span>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: var(--pad-section);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .kicker {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .soc {
+    --nat-l: 0.56;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    background: var(--t-card, var(--t-bg));
+    color: var(--t-fg);
+    border: 1px solid var(--t-border-2);
+    min-height: 300px;
+  }
+  .soc:nth-child(even) .img {
+    order: 2;
+  }
+  .soc:hover,
+  .soc:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+  .img {
+    position: relative;
+    min-height: 220px;
+    background: #000;
+  }
+  .soc[data-theme='silence'] .img {
+    background: #e6e5e0;
+  }
+  .img :global(img) {
+    position: absolute;
+    inset: 0;
+  }
+  .txt {
+    padding: clamp(22px, 3vw, 36px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: flex-end;
+  }
+  .meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.04em;
+    color: var(--t-label);
+  }
+  .meta.foot {
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--t-border);
+  }
+  .go {
+    margin-left: auto;
+    color: var(--t-accent);
+  }
+  .name {
+    font-weight: var(--t-title-fw);
+    letter-spacing: var(--t-title-ls);
+    font-size: clamp(36px, 5vw, 60px);
+    line-height: 0.95;
+  }
+  .sum {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--t-fg-3);
+    max-width: 30em;
+  }
+  .soon {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 24px;
+    border: 1px dashed var(--muted-2);
+    color: var(--muted);
+    background: var(--stripes);
+  }
+  .soon-title {
+    font-weight: 500;
+    font-size: 22px;
+  }
+  .soon-text {
+    font-size: 14px;
+  }
+</style>

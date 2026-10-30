@@ -1,0 +1,298 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getNatures, natColor, typeStyle } from '../../lib/natures';
+import { getLocalized } from '../../lib/content';
+import { collator, langPaths, useI18n } from '../../i18n';
+
+export const getStaticPaths = langPaths;
+
+const { lang, t, u } = useI18n(Astro.url);
+const cmp = collator(lang);
+
+const TIPOS = Object.keys(t.types) as (keyof typeof t.types)[];
+const natures = await getNatures(lang);
+const byId = Object.fromEntries(natures.map((n) => [n.id, n]));
+const entries = (await getLocalized('entries', lang)).sort((a, b) => cmp(a.data.title, b.data.title));
+---
+
+<BaseLayout title={t.archive.title} description={t.archive.description}>
+  <main>
+    <form class="controls rule-b" role="search" action={u('/arquivo')} id="arquivo-form">
+      <label class="query">
+        <span class="label">{t.archive.query}</span>
+        <input type="search" name="q" placeholder={t.archive.placeholder} autocomplete="off" />
+      </label>
+      <div class="chips" role="group" aria-label={t.archive.typeGroup}>
+        <button type="button" class="chip tipo" data-tipo="" aria-pressed="true">{t.archive.allTypes}</button>
+        {
+          TIPOS.map((k) => (
+            <button type="button" class="chip tipo" data-tipo={k} aria-pressed="false">
+              {t.types[k].one.toUpperCase()}
+            </button>
+          ))
+        }
+      </div>
+      <div class="chips" role="group" aria-label={t.archive.natureGroup}>
+        <button type="button" class="chip nat all" data-nat="" aria-pressed="true">
+          <span class="sw" style="background:var(--ink)"></span>{t.archive.allNatures}
+        </button>
+        {
+          natures.map((n) => (
+            <button
+              type="button"
+              class="chip nat"
+              data-nat={n.id}
+              aria-pressed="false"
+              style={`--c:${natColor(n.hue)};--c-14:${natColor(n.hue, 0.14)};${typeStyle(n.typography, { shadow: false, transform: false })}`}
+            >
+              <span class="sw" />
+              {n.name}
+            </button>
+          ))
+        }
+      </div>
+    </form>
+
+    <div class="row head rule-b" aria-hidden="true">
+      {t.archive.cols.map((c) => <span>{c}</span>)}
+    </div>
+    <ul class="results" id="arquivo-results">
+      {
+        entries.map((e, i) => {
+          const n = e.data.nature ? byId[e.data.nature] : null;
+          const c = n ? natColor(n.hue) : 'var(--muted-2)';
+          return (
+            <li
+              data-tipo={e.data.type}
+              data-nat={e.data.nature ?? ''}
+              data-text={`${e.data.title} ${e.data.summary} ${t.types[e.data.type].one}`.toLowerCase()}
+            >
+              <a class="row plain" href={u(e.data.href ?? `/wiki/${e.slug}`)} style={`--c:${c}`}>
+                <span class="num">{String(i + 1).padStart(3, '0')}</span>
+                <span class="reg">
+                  <span class="t">{e.data.title}</span>
+                  <span class="d">{e.data.summary}</span>
+                </span>
+                <span class="tipo-cell">{t.types[e.data.type].one.toUpperCase()}</span>
+                <span class="nat-cell" style={n ? typeStyle(n.typography, { shadow: false, transform: false }) : undefined}>
+                  {n ? n.name : '—'}
+                </span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+    <p class="empty" id="arquivo-empty" hidden>{t.archive.empty}</p>
+  </main>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('arquivo-form') as HTMLFormElement;
+  const input = form.querySelector('input') as HTMLInputElement;
+  const rows = [...document.querySelectorAll<HTMLLIElement>('#arquivo-results li')];
+  const empty = document.getElementById('arquivo-empty')!;
+  const params = new URLSearchParams(location.search);
+  const state = { q: params.get('q') ?? '', tipo: params.get('tipo') ?? '', nat: params.get('natureza') ?? '' };
+  input.value = state.q;
+
+  function apply() {
+    const q = state.q.trim().toLowerCase();
+    let n = 0;
+    for (const li of rows) {
+      const ok =
+        (!state.tipo || li.dataset.tipo === state.tipo) &&
+        (!state.nat || li.dataset.nat === state.nat) &&
+        (!q || li.dataset.text!.includes(q));
+      li.hidden = !ok;
+      if (ok) li.querySelector('.num')!.textContent = String(++n).padStart(3, '0');
+    }
+    empty.hidden = n > 0;
+    form.querySelectorAll<HTMLButtonElement>('.tipo').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tipo === state.tipo)));
+    form.querySelectorAll<HTMLButtonElement>('.nat').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.nat === state.nat)));
+    const p = new URLSearchParams();
+    if (state.q) p.set('q', state.q);
+    if (state.tipo) p.set('tipo', state.tipo);
+    if (state.nat) p.set('natureza', state.nat);
+    const qs = p.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  input.addEventListener('input', () => {
+    state.q = input.value;
+    apply();
+  });
+  form.addEventListener('submit', (e) => e.preventDefault());
+  form.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button.chip');
+    if (!b) return;
+    if (b.classList.contains('tipo')) state.tipo = b.dataset.tipo!;
+    else state.nat = b.dataset.nat!;
+    apply();
+  });
+  apply();
+</script>
+
+<style>
+  .controls {
+    padding: clamp(20px, 4vw, 40px) var(--pad-x);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .query {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 8px;
+  }
+  .query .label {
+    font-size: 12px;
+  }
+  .query input {
+    all: unset;
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+  .query input::placeholder {
+    color: var(--muted-2);
+  }
+  .query input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chip.tipo {
+    padding: 10px 12px;
+    font: 500 11px var(--font-mono);
+  }
+  .chip.tipo:hover {
+    background: var(--paper-2);
+  }
+  .chip.tipo[aria-pressed='true'],
+  .chip.all[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .chip.nat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-color: var(--c, var(--ink));
+  }
+  .chip.nat:not(.all)[aria-pressed='true'] {
+    background: var(--c-14);
+  }
+  .chip.nat:not([aria-pressed='true']):hover {
+    background: var(--paper-2);
+  }
+  .sw {
+    width: 8px;
+    height: 8px;
+    background: var(--c);
+  }
+  .chip.all[aria-pressed='true'] .sw {
+    background: var(--paper) !important;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+    padding: 16px var(--pad-x);
+  }
+  .row.head {
+    padding-block: 10px;
+    font: 500 11px var(--font-mono);
+    color: var(--muted);
+  }
+  .results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .results li {
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .results .row {
+    position: relative;
+    width: 100%;
+  }
+  .results .row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--c);
+  }
+  .results .row:hover {
+    background: var(--paper-2);
+  }
+  .num {
+    font: 500 11px var(--font-mono);
+    color: var(--muted);
+  }
+  .reg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .t {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .d {
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+  .tipo-cell {
+    font: 500 11px var(--font-mono);
+  }
+  .nat-cell {
+    font-size: 14px;
+    color: var(--c);
+  }
+  @media (max-width: 640px) {
+    .row {
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+    }
+    .row > :nth-child(4) {
+      grid-column: 2 / -1;
+    }
+    .row.head {
+      display: none;
+    }
+  }
+  .empty {
+    margin: 0;
+    padding: 40px var(--pad-x);
+    font: 500 13px var(--font-mono);
+    color: var(--muted);
+  }
+</style>

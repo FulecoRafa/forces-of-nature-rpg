@@ -1,0 +1,303 @@
+---
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getNatureMap, natColor } from '../../../lib/natures';
+import AiBadge from '../../../components/AiBadge.astro';
+import { getLocalized, getLocalizedMap } from '../../../lib/content';
+import { langParam, LANGS, useI18n } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const paths = await Promise.all(
+    LANGS.map(async (lang) =>
+      (await getLocalized('entries', lang)).map((e) => ({ params: { lang: langParam(lang), slug: e.slug }, props: { entry: e } })),
+    ),
+  );
+  return paths.flat();
+}
+
+const { lang, t, u } = useI18n(Astro.url);
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const hasBody = Boolean(entry.body?.trim());
+const nature = d.nature ? (await getNatureMap(lang))[d.nature] : null;
+const society = d.society ? (await getLocalizedMap('societies', lang))[d.society] : undefined;
+const color = nature ? natColor(nature.hue) : 'var(--ink)';
+const code = d.code ?? entry.slug.toUpperCase();
+
+const infobox = d.infobox.length
+  ? d.infobox
+  : [
+      { k: t.wiki.info.type, v: t.types[d.type].one },
+      ...(nature ? [{ k: t.wiki.info.nature, v: nature.name }] : []),
+      ...(d.path ? [{ k: t.wiki.info.path, v: t.paths[d.path] }] : []),
+      ...(d.cost ? [{ k: t.wiki.info.cost, v: d.cost }] : []),
+      ...(society ? [{ k: t.wiki.info.origin, v: society.data.title }] : []),
+    ];
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  <main class="entry">
+    <article style={`--c:${color}`}>
+      <div class="crumbs label">
+        <a href={u('/arquivo')}>{t.wiki.archive}</a><span>/</span>
+        <a href={u(`/arquivo?tipo=${encodeURIComponent(d.type)}`)}>{t.types[d.type].many}</a><span>/</span>
+        <span class="here">{code}</span>
+      </div>
+      <div class="head">
+        <div class="tags">
+          <span class="tag">{t.types[d.type].one}</span>
+          {
+            nature && (
+              <a class="tag solid" style={`--tag-bg:${color}`} href={u(`/naturezas/${nature.id}`)}>
+                {nature.symbol} · {nature.name}
+              </a>
+            )
+          }
+          {d.path && <span class:list={['tag', { accent: d.path === 'orgânica' }]}>{t.paths.label} {t.paths[d.path]}</span>}
+          {d.example && <span class="tag dashed">{t.wiki.example}</span>}
+          {!entry.translated && lang !== 'pt' && <span class="tag dashed">{t.common.untranslated}</span>}
+        </div>
+        <h1>{d.title}</h1>
+        <p class="summary">{d.summary}</p>
+      </div>
+      {
+        (d.image || d.type === 'Máquina' || d.type === 'Item') && (
+          <figure class="fig">
+            <div class:list={['frame', { ph: !d.image }]}>
+              {d.image ? (
+                <>
+                  <Image src={d.image} alt="" widths={[640, 1280]} sizes="(min-width: 900px) 60vw, 100vw" />
+                  <AiBadge src={d.image} />
+                </>
+              ) : (
+                <span>{d.imageCaption ?? t.wiki.noImage}</span>
+              )}
+            </div>
+          </figure>
+        )
+      }
+      {
+        hasBody && (
+          <section class="part">
+            <h2>01 — {t.wiki.howItWorks}</h2>
+            <div class="body">
+              <Content />
+            </div>
+          </section>
+        )
+      }
+      {!hasBody && d.rules.length === 0 && <p class="pending label">{t.wiki.pending}</p>}
+      {
+        d.rules.length > 0 && (
+          <section class="part">
+            <h2>{hasBody ? '02' : '01'} — {t.wiki.atTable}</h2>
+            <div class="rules">
+              {d.rules.map((r) => (
+                <div>
+                  <span class="rk">{r.k}</span>
+                  <span class="rv">{r.v}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </article>
+    <aside>
+      <div class="info">
+        <div class="info-head">{t.wiki.techSheet}</div>
+        {
+          infobox.map((r) => (
+            <div class="info-row">
+              <span class="label">{r.k}</span>
+              <span class="iv">{r.v}</span>
+            </div>
+          ))
+        }
+      </div>
+      {
+        (society || nature) && (
+          <div class="appears">
+            <span class="label">{t.wiki.appearsIn}</span>
+            {society && (
+              <a class="row-link" href={u(`/sociedades/${society.slug}`)}>
+                <span>{society.data.title}</span>
+                <span>→</span>
+              </a>
+            )}
+            {nature && (
+              <a class="row-link" href={u(`/naturezas/${nature.id}`)}>
+                <span>{t.wiki.natureLink}: {nature.name}</span>
+                <span>→</span>
+              </a>
+            )}
+          </div>
+        )
+      }
+    </aside>
+  </main>
+</BaseLayout>
+
+<style>
+  .entry {
+    display: grid;
+    align-items: start;
+  }
+  @media (min-width: 1000px) {
+    .entry {
+      grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+    }
+    article {
+      border-right: 1px solid var(--ink);
+    }
+    aside {
+      position: sticky;
+      top: var(--header-h);
+    }
+  }
+  article {
+    min-width: 0;
+    padding: clamp(24px, 4vw, 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    border-top: 6px solid var(--c);
+    min-height: 100%;
+  }
+  .crumbs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .crumbs a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+  .here {
+    color: var(--ink);
+  }
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: clamp(38px, 6vw, 72px);
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+  }
+  .summary {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 34em;
+  }
+  .fig {
+    margin: 0;
+  }
+  .fig .frame {
+    aspect-ratio: 16 / 8;
+    border: 1px solid var(--ink);
+  }
+  .part {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .part h2 {
+    margin: 0;
+    font: 500 12px var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .body {
+    max-width: 40em;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .body :global(p) {
+    margin: 0 0 1em;
+  }
+  .body :global(p:last-child) {
+    margin: 0;
+  }
+  .pending {
+    margin: 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .rules {
+    border: 1px solid var(--ink);
+  }
+  .rules > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .rules > div:last-child {
+    border-bottom: 0;
+  }
+  .rk {
+    padding: 12px 14px;
+    font: 500 12px var(--font-mono);
+    border-right: 1px solid var(--ink);
+  }
+  .rv {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+  aside {
+    padding: clamp(24px, 3vw, 40px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .info {
+    border: 1px solid var(--ink);
+  }
+  .info-head {
+    padding: 10px 14px;
+    font: 500 11px var(--font-mono);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .info-row:last-child {
+    border-bottom: 0;
+  }
+  .iv {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+  .appears {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .appears .row-link {
+    padding: 12px 0;
+    border-bottom-color: var(--ink);
+    font-size: 15px;
+  }
+</style>

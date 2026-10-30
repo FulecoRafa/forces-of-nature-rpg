@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+import { ui } from '../i18n/ui';
+
+// O GitHub Pages serve um único 404 para o site todo: mostra os dois idiomas.
+const { pt, en } = ui;
+---
+
+<BaseLayout title={`${pt.notFound.title} · ${en.notFound.title}`}>
+  <main class="section nf">
+    <span class="label">{pt.notFound.kicker}</span>
+    <h1 class="h1">{pt.notFound.heading}</h1>
+    <p class="lead">{pt.notFound.text}</p>
+    <div class="ctas">
+      <a class="btn" href={url('/')}>{pt.notFound.home}</a>
+      <a class="btn ghost" href={url('/arquivo')}>{pt.notFound.search}</a>
+    </div>
+    <div class="en" lang="en">
+      <span class="label">{en.notFound.kicker}</span>
+      <p class="lead"><strong>{en.notFound.heading}</strong> {en.notFound.text}</p>
+      <div class="ctas">
+        <a class="btn ghost" href={url('/en')}>{en.notFound.home}</a>
+        <a class="btn ghost" href={url('/en/arquivo')}>{en.notFound.search}</a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding-block: clamp(48px, 10vw, 120px);
+  }
+  .ctas {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .en {
+    margin-top: 24px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .en .lead strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+</style>

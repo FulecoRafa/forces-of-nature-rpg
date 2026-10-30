@@ -1,0 +1,57 @@
+---
+import { useI18n } from '../i18n';
+
+interface Props {
+  people: { name: string; role: string; href?: string }[];
+}
+const { people } = Astro.props;
+const { t, u } = useI18n(Astro.url);
+---
+
+<div class="people">
+  <span class="people-head">{t.common.people}</span>
+  {
+    people.map((p) =>
+      p.href ? (
+        <a class="person plain" href={u(p.href)}>
+          <span>{p.name}</span>
+          <span class="role">{p.role}</span>
+        </a>
+      ) : (
+        <div class="person">
+          <span>{p.name}</span>
+          <span class="role">{p.role}</span>
+        </div>
+      ),
+    )
+  }
+</div>
+
+<style>
+  .people {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .people-head {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+    padding-bottom: 8px;
+  }
+  .person {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--t-border);
+    font-size: 15px;
+  }
+  a.person:hover {
+    color: var(--t-accent);
+  }
+  .role {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+    text-align: right;
+  }
+</style>

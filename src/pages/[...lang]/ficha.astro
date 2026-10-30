@@ -1,0 +1,477 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getNatureMap, natColor } from '../../lib/natures';
+import { langPaths, useI18n } from '../../i18n';
+
+export const getStaticPaths = langPaths;
+
+const { lang, t, u } = useI18n(Astro.url);
+const S = t.sheet;
+const g = (await getNatureMap(lang)).gravidade;
+const gc = natColor(g.hue);
+
+const LABELS = S.labels;
+const seed = Object.fromEntries(Object.keys(LABELS).map((k, i) => [k, i + 1])) as Record<keyof typeof LABELS, number>;
+const NOTA = S.note;
+const attrs: [string, number][] = [2, 3, 3, 4, 2, 1].map((v, i) => [S.attrs[i], v]);
+const spells = [
+  { n: S.spells[0], cost: '−12 SAN', href: '/wiki/implosao' },
+  { n: S.spells[1], cost: '−6 SAN' },
+  { n: S.spells[2], cost: '−3 SAN' },
+];
+const gear = [
+  { n: S.gear[0], c: S.crystal, href: '/wiki/botas-antigravidade' },
+  { n: S.gear[1], c: '—' },
+  { n: S.gear[2], c: '—' },
+];
+const WHISPER = S.whisper;
+---
+
+<BaseLayout title={S.title} description={S.description}>
+  <main class="ficha" id="ficha">
+    <div class="bar">
+      <label class="san-ctl">
+        {S.sanity}
+        <input type="range" min="0" max="100" value="72" id="san-range" aria-describedby="san-status" />
+      </label>
+      <button type="button" class="act cast" id="cast">{S.cast}</button>
+      <button type="button" class="act" id="rest">{S.rest}</button>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <section class="top">
+        <div class="who">
+          <div class="portrait ph">{S.portrait}</div>
+          <div class="who-text">
+            <span class="label" data-cut={seed.nome} data-k="1">{LABELS.nome}</span>
+            <span class="name mis" data-cut="2" data-k="1" data-stretch>Voss</span>
+            <span class="who-tags">
+              <a class="tag solid" style={`--tag-bg:${gc}`} href={u('/naturezas/gravidade')}>{g.symbol} · {g.name}</a>
+              <span class="tag accent">{S.organic}</span>
+              <span class="label">{S.role}</span>
+            </span>
+          </div>
+        </div>
+        <div class="san-box" id="san-box">
+          <span class="lbl" data-cut={seed.sanidade} data-k="1">{LABELS.sanidade}</span>
+          <span class="san-num mis" id="san-num">72</span>
+          <span class="status" id="san-status" data-k="1" aria-live="polite" data-labels={JSON.stringify(S.status)}>{S.status[1]}</span>
+        </div>
+      </section>
+
+      <section class="box" data-off="1">
+        <div class="box-head">
+          <span data-cut={seed.atributos} data-k="1">{LABELS.atributos}</span><span class="dim">{S.example}</span>
+        </div>
+        <div class="attrs">
+          {
+            attrs.map(([k, v], i) => (
+              <div>
+                <span class="ak" data-cut={20 + i} data-k="1">{k}</span>
+                <span class="av mis" data-attr={30 + i} data-v={v}>{v}</span>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="box" data-off="2">
+        <div class="box-head"><span data-cut={seed.feiticos} data-k="1">{LABELS.feiticos}</span></div>
+        {
+          spells.map((s, i) => {
+            const inner = (
+              <>
+                <span class="strip" />
+                <span class="sn" data-cut={40 + i} data-k="1">{s.n}</span>
+                <span class="cost">{s.cost}</span>
+              </>
+            );
+            return s.href ? (
+              <a class="spell plain" href={u(s.href)} style={`--c:${gc}`}>{inner}</a>
+            ) : (
+              <div class="spell" style={`--c:${gc}`}>{inner}</div>
+            );
+          })
+        }
+      </section>
+
+      <section class="box" data-off="3">
+        <div class="box-head">
+          <span data-cut={seed.equip} data-k="1">{LABELS.equip}</span><span>{S.crystal} <span id="cristal">3</span>/5</span>
+        </div>
+        {
+          gear.map((it) =>
+            it.href ? (
+              <a class="gear plain" href={u(it.href)}><span>{it.n}</span><span class="label">{it.c}</span></a>
+            ) : (
+              <div class="gear"><span>{it.n}</span><span class="label">{it.c}</span></div>
+            ),
+          )
+        }
+        <button type="button" class="boots" id="boots">{S.boots}</button>
+      </section>
+
+      <section class="box notes" data-off="4">
+        <span class="label" data-cut={seed.notas} data-k="1">{LABELS.notas}</span>
+        <p data-cut="13" data-k="0.6">{NOTA}</p>
+      </section>
+    </div>
+
+    <div class="whisper" id="whisper" hidden aria-hidden="true">
+      <div id="whisper-text" data-cut="7" data-k="0.5" data-src={Array(8).fill(WHISPER).join(' ')}></div>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  // Degradação da ficha conforme a sanidade (mesmas fórmulas do protótipo).
+  const K = 1; // intensidade
+  const root = document.getElementById('ficha')!;
+  const range = document.getElementById('san-range') as HTMLInputElement;
+  const sheet = document.getElementById('sheet')!;
+  const sanNum = document.getElementById('san-num')!;
+  const sanBox = document.getElementById('san-box')!;
+  const status = document.getElementById('san-status')!;
+  const cristalEl = document.getElementById('cristal')!;
+  const whisper = document.getElementById('whisper')!;
+  const marquee = document.getElementById('whisper-text')!;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const LABELS: string[] = JSON.parse(status.dataset.labels!);
+
+  let san = 72;
+  let cristal = 3;
+  let tick = 0;
+  let visible = true;
+
+  const cuts = [...root.querySelectorAll<HTMLElement>('[data-cut]')];
+  for (const el of cuts) el.dataset.src ??= el.textContent ?? '';
+  const mis = [...root.querySelectorAll<HTMLElement>('.mis')];
+  const offs = [...root.querySelectorAll<HTMLElement>('[data-off]')];
+  const attrs = [...root.querySelectorAll<HTMLElement>('[data-attr]')];
+  const stretch = root.querySelector<HTMLElement>('[data-stretch]')!;
+
+  const rnd = (n: number) => {
+    const x = Math.sin(n * 12.9898 + tick * 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  const cut = (s: string, p: number, seed: number) => {
+    if (p <= 0) return s;
+    let o = '';
+    for (let i = 0; i < s.length; i++) o += s[i] !== ' ' && rnd(seed * 19 + i) < p ? '█' : s[i];
+    return o;
+  };
+
+  function render() {
+    const d = Math.min(1, Math.max(0, (100 - san) / 100) * K);
+    const dd = d * d;
+    const p = Math.max(0, d - 0.4) * 0.7;
+    const m = dd * 8;
+    const j = (i: number) => rnd(i) * 2 - 1;
+
+    for (const el of cuts) el.textContent = cut(el.dataset.src!, p * Number(el.dataset.k), Number(el.dataset.cut));
+
+    const label = LABELS[san > 70 ? 0 : san > 45 ? 1 : san > 20 ? 2 : 3];
+    status.textContent = cut(label, p, 99);
+    status.setAttribute('aria-label', label);
+    sanNum.textContent = String(san).padStart(2, '0');
+    sanBox.style.background = san > 70 ? 'oklch(0.88 0.08 150)' : san > 45 ? 'oklch(0.88 0.1 85)' : '#c2462a';
+    sanBox.style.color = san > 45 ? '#1c1d1a' : '#fff';
+
+    const shadow =
+      m > 0.5
+        ? `${(m * (0.5 + rnd(2))).toFixed(1)}px 0 0 rgba(194,70,42,.85), ${(-m * (0.5 + rnd(3))).toFixed(1)}px ${(m * 0.5).toFixed(1)}px 0 oklch(0.7 0.13 205 / .85)`
+        : 'none';
+    for (const el of mis) el.style.textShadow = shadow;
+
+    stretch.style.transform = `scaleX(${(1 + j(5) * dd * 0.35).toFixed(3)})`;
+    sheet.style.transform = `skewY(${(j(9) * dd * 1.5).toFixed(2)}deg)`;
+    for (const el of offs) {
+      const i = Number(el.dataset.off);
+      el.style.transform = `translate(${(j(i) * dd * 18).toFixed(0)}px, ${(j(i + 4) * dd * 10).toFixed(0)}px)`;
+    }
+    attrs.forEach((el) => {
+      el.textContent = d > 0.6 && rnd(Number(el.dataset.attr)) < d - 0.5 ? '█' : el.dataset.v!;
+    });
+
+    whisper.hidden = san >= 35;
+    marquee.style.transform = `translateX(-${(tick * 14) % 520}px)`;
+    cristalEl.textContent = String(cristal);
+    range.value = String(san);
+  }
+
+  const setSan = (v: number) => {
+    san = Math.min(100, Math.max(0, v));
+    render();
+  };
+  range.addEventListener('input', () => setSan(Number(range.value)));
+  document.getElementById('cast')!.addEventListener('click', () => setSan(san - 12));
+  document.getElementById('rest')!.addEventListener('click', () => setSan(san + 10));
+  document.getElementById('boots')!.addEventListener('click', () => {
+    cristal = Math.max(0, cristal - 1);
+    render();
+  });
+
+  new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(sheet);
+  setInterval(() => {
+    if (san < 50 && visible && !document.hidden && !reduced.matches) {
+      tick++;
+      render();
+    }
+  }, 220);
+  render();
+</script>
+
+<style>
+  .ficha {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    border-bottom: 1px solid var(--ink);
+  }
+  .san-ctl {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 20px;
+    font: 500 12px var(--font-mono);
+    border-right: 1px solid var(--ink);
+  }
+  .san-ctl input {
+    flex: 1;
+    min-height: 44px;
+  }
+  .act,
+  .boots {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    font: 500 12px var(--font-mono);
+  }
+  .act {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    min-height: 56px;
+  }
+  .act:hover,
+  .boots:hover {
+    background: var(--paper-2);
+  }
+  .act.cast {
+    background: var(--accent);
+    color: #fff;
+    border-right: 1px solid var(--ink);
+  }
+  .act.cast:hover {
+    background: #a83a21;
+  }
+  .act:focus-visible,
+  .boots:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .sheet {
+    padding: clamp(14px, 3vw, 40px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    transition: transform 0.3s;
+  }
+  @media (min-width: 720px) {
+    .sheet {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1040px) {
+    .sheet {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .sheet > section {
+    transition: transform 0.3s;
+  }
+  .top {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    border: 1px solid var(--ink);
+  }
+  .who {
+    grid-column: span 2;
+    padding: clamp(16px, 3vw, 24px);
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    border-right: 1px solid var(--ink);
+    min-width: 0;
+  }
+  @media (max-width: 560px) {
+    .who {
+      grid-column: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--ink);
+    }
+  }
+  .portrait {
+    width: 104px;
+    height: 132px;
+    flex: none;
+    border: 1px solid var(--ink);
+  }
+  .who-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .name {
+    display: inline-block;
+    font-weight: 600;
+    font-size: clamp(56px, 8vw, 104px);
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    transform-origin: left bottom;
+    transition: transform 0.3s;
+  }
+  .who-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .san-box {
+    padding: clamp(16px, 3vw, 24px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    transition: background 0.3s;
+  }
+  .lbl {
+    font: 500 11px var(--font-mono);
+  }
+  .san-num {
+    font: 500 clamp(72px, 9vw, 120px) / 0.82 var(--font-mono);
+    letter-spacing: -0.06em;
+  }
+  .status {
+    font: 600 13px var(--font-mono);
+  }
+
+  .box {
+    border: 1px solid var(--ink);
+  }
+  .box-head {
+    padding: 10px 14px;
+    background: var(--ink);
+    color: var(--paper);
+    font: 500 11px var(--font-mono);
+    display: flex;
+    justify-content: space-between;
+  }
+  .dim {
+    opacity: 0.6;
+  }
+  .attrs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .attrs > div {
+    padding: 14px;
+    border-right: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ak {
+    font: 500 10px var(--font-mono);
+    color: var(--muted);
+  }
+  .av {
+    font: 500 34px var(--font-mono);
+  }
+  .spell {
+    display: grid;
+    grid-template-columns: 4px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding-right: 14px;
+    border-bottom: 1px solid var(--rule-soft);
+    min-height: 52px;
+  }
+  a.spell:hover,
+  a.gear:hover {
+    background: var(--paper-2);
+  }
+  .strip {
+    align-self: stretch;
+    background: var(--c);
+  }
+  .sn {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+  .cost {
+    font: 500 11px var(--font-mono);
+    background: var(--accent);
+    color: #fff;
+    padding: 4px 7px;
+  }
+  .gear {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 15px;
+  }
+  .boots {
+    display: block;
+    width: 100%;
+    padding: 14px;
+  }
+  .notes {
+    grid-column: 1 / -1;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .notes p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 50em;
+  }
+  .whisper {
+    background: var(--accent);
+    color: #fff;
+    border-top: 1px solid var(--ink);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 10px 0;
+  }
+  .whisper > div {
+    display: inline-block;
+    font: 600 clamp(22px, 3vw, 34px) var(--font-mono);
+    letter-spacing: -0.02em;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet > section,
+    .name,
+    .san-box {
+      transition: none;
+    }
+  }
+</style>

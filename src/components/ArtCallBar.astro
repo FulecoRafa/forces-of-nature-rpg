@@ -1,0 +1,108 @@
+---
+import { unlocalized, useI18n } from '../i18n';
+
+/** Faixa no topo de todas as páginas chamando artistas. Some ao fechar (lembrado no navegador). */
+const { t, u } = useI18n(Astro.url);
+const onArtPage = unlocalized(Astro.url.pathname).startsWith('/artes');
+---
+
+{
+  !onArtPage && (
+    <aside class="art-bar" aria-label={t.art.title}>
+      <a class="plain msg" href={u('/artes')}>
+        <span class="dot" aria-hidden="true" />
+        <span class="txt">
+          {t.ai.bar} <strong>{t.ai.barAsk}</strong>
+        </span>
+        <span class="cta">{t.ai.barCta}</span>
+      </a>
+      <button class="plain close" type="button" id="art-bar-close" aria-label={t.ai.barClose} title={t.ai.barClose}>
+        ×
+      </button>
+    </aside>
+  )
+}
+
+<script>
+  document.getElementById('art-bar-close')?.addEventListener('click', () => {
+    document.documentElement.dataset.artbar = 'off';
+    try {
+      localStorage.setItem('artBar', 'off');
+    } catch {}
+  });
+</script>
+
+<style>
+  .art-bar {
+    display: flex;
+    align-items: stretch;
+    background: #c2462a;
+    color: #fff;
+    font: 500 12px/1.4 var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+  :global([data-artbar='off']) .art-bar {
+    display: none;
+  }
+  .msg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 9px var(--pad-x);
+    color: inherit;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .txt strong {
+    font-weight: 600;
+  }
+  .cta {
+    padding: 3px 8px;
+    background: #fff;
+    color: #c2462a;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .msg:hover .cta {
+    background: #1a1917;
+    color: #fff;
+  }
+  .close {
+    flex: none;
+    width: 44px;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .close:hover {
+    background: rgba(0, 0, 0, 0.18);
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot {
+      animation: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .dot {
+      display: none;
+    }
+    .msg {
+      justify-content: flex-start;
+      font-size: 11px;
+    }
+  }
+</style>

@@ -1,0 +1,416 @@
+/* Tema "Relatório de Campo" */
+:root {
+  --paper: #f2f0ea;
+  --paper-2: #e9e6dd;
+  --paper-3: #f7f6f1;
+  --ink: #1c1d1a;
+  --ink-2: #3c3c37;
+  --ink-3: #57564f;
+  --muted: #6b6a63;
+  --muted-2: #8d8b82;
+  --rule-soft: #d3d0c6;
+  --rule-2: #cfccc1;
+  --accent: #c2462a;
+  /* Disco do hero e fundos "de vácuo" */
+  --void: #121110;
+  /* Luminosidade das cores de natureza (natColor) e texto sobre elas */
+  --nat-l: 0.56;
+  --on-nat: #fff;
+  color-scheme: light;
+
+  --font-sans: Geist, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --pad-section: clamp(28px, 5vw, 56px) clamp(20px, 5vw, 64px);
+  --pad-x: clamp(20px, 5vw, 64px);
+  --header-h: 53px;
+  --stripes: repeating-linear-gradient(135deg, rgba(28, 29, 26, 0.06) 0 1px, transparent 1px 10px);
+  --ease-spec: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Modo escuro: segue o sistema, a menos que o leitor tenha escolhido (data-mode no <html>) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode='light']) {
+    --paper: #141513;
+    --paper-2: #1e1f1c;
+    --paper-3: #191a17;
+    --ink: #e9e6dd;
+    --ink-2: #cac7bd;
+    --ink-3: #b0ada3;
+    --muted: #918f86;
+    --muted-2: #6f6d66;
+    --rule-soft: #34352f;
+    --rule-2: #2c2d28;
+    --accent: #e0563a;
+    --void: #0a0a09;
+    --nat-l: 0.7;
+    --on-nat: #141513;
+    --stripes: repeating-linear-gradient(135deg, rgba(233, 230, 221, 0.07) 0 1px, transparent 1px 10px);
+    color-scheme: dark;
+  }
+}
+:root[data-mode='dark'] {
+  --paper: #141513;
+  --paper-2: #1e1f1c;
+  --paper-3: #191a17;
+  --ink: #e9e6dd;
+  --ink-2: #cac7bd;
+  --ink-3: #b0ada3;
+  --muted: #918f86;
+  --muted-2: #6f6d66;
+  --rule-soft: #34352f;
+  --rule-2: #2c2d28;
+  --accent: #e0563a;
+  --void: #0a0a09;
+  --nat-l: 0.7;
+  --on-nat: #141513;
+  --stripes: repeating-linear-gradient(135deg, rgba(233, 230, 221, 0.07) 0 1px, transparent 1px 10px);
+  color-scheme: dark;
+}
+
+/* Temas de sociedade — só nas páginas e cartões da sociedade */
+[data-theme='penrose'] {
+  --t-bg: #13111d;
+  --t-fg: #efe9e4;
+  --t-fg-2: #c9c2d4;
+  --t-fg-3: #a9a3b5;
+  --t-body: #ddd6e4;
+  --t-strong: #fff;
+  --t-label: #8e86a0;
+  --t-border: #3a3450;
+  --t-border-2: #2a2540;
+  --t-accent: #e0563a;
+  --t-title-fw: 600;
+  --t-title-ls: -0.06em;
+}
+[data-theme='silence'] {
+  /* Tema claro próprio: mantém as cores de natureza do modo claro */
+  --nat-l: 0.56;
+  --t-bg: #f8f7f3;
+  --t-card: #fbfaf7;
+  --t-fg: #2b2c30;
+  --t-fg-2: #3b3e45;
+  --t-fg-3: #5d6068;
+  --t-body: #3b3e45;
+  --t-strong: #2b2c30;
+  --t-label: #7c808a;
+  --t-border: #c9ccd2;
+  --t-border-2: #b9bcc2;
+  --t-silver: #9ea3ad;
+  --t-accent: #2b2c30;
+  --t-title-fw: 300;
+  --t-title-ls: 0.01em;
+}
+[data-theme='silence-dark'] {
+  --t-bg: #0d0d12;
+  --t-fg: #e7e5ee;
+  --t-fg-2: #c9c6d4;
+  --t-fg-3: #c9c6d4;
+  --t-body: #d9d6e2;
+  --t-strong: #fff;
+  --t-label: #8e8a9c;
+  --t-border: #2d2b3a;
+  --t-border-2: #2d2b3a;
+  --t-accent: oklch(0.62 0.16 330);
+  --t-title-fw: 300;
+  --t-title-ls: 0.01em;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+main {
+  flex: 1;
+}
+a {
+  color: var(--accent);
+}
+a:hover {
+  color: var(--ink);
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+p {
+  text-wrap: pretty;
+}
+input[type='range'] {
+  accent-color: var(--accent);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Links/botões que não parecem links */
+.plain {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.plain:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Rótulo mono */
+.label {
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.label-sm {
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+
+.section {
+  padding: var(--pad-section);
+}
+.rule-b {
+  border-bottom: 1px solid var(--ink);
+}
+
+/* H2 de seção: "§ N — Título" */
+.h2 {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 36px);
+  letter-spacing: -0.03em;
+}
+.h1 {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(48px, 9vw, 120px);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+.lead {
+  margin: 0;
+  max-width: 34em;
+  font-size: clamp(18px, 1.8vw, 21px);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Grade com bordas compartilhadas */
+.cells {
+  display: grid;
+  border-top: 1px solid var(--cell-border, var(--ink));
+  border-left: 1px solid var(--cell-border, var(--ink));
+}
+.cells > * {
+  border-right: 1px solid var(--cell-border, var(--ink));
+  border-bottom: 1px solid var(--cell-border, var(--ink));
+}
+
+/* Selos / tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.tag.solid {
+  border-color: transparent;
+  background: var(--tag-bg, var(--ink));
+  color: var(--on-nat);
+}
+.tag.dashed {
+  border-style: dashed;
+  border-color: var(--muted-2);
+  color: var(--muted);
+}
+.tag.accent {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Botões */
+.btn {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 22px;
+  font: 500 13px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  transition: background 0.15s;
+}
+.btn:hover {
+  background: var(--accent);
+  color: var(--paper);
+}
+.btn.ghost {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+.btn.ghost:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Placeholder de imagem */
+.ph {
+  background: var(--stripes);
+  display: grid;
+  place-items: center;
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* Imagem que preenche o quadro */
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.frame {
+  position: relative;
+  overflow: hidden;
+}
+.frame > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Linha de lista com hover */
+.row-link {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  color: inherit;
+}
+.row-link:hover {
+  color: var(--accent);
+}
+.row-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Aviso de imagem gerada por IA (AiBadge.astro e figuras do Markdown) */
+figure:has(> .ai-badge) {
+  position: relative;
+}
+.ai-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  font: 500 9px/1.2 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #f2f0ea;
+  background: rgba(10, 10, 9, 0.62);
+  border: 1px solid rgba(242, 240, 234, 0.22);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.ai-badge::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e0563a;
+}
+/* O convite fica sempre visível, colado ao aviso */
+.ai-badge .i {
+  margin: -4px -7px -4px 2px;
+  padding: 4px 7px;
+  background: #c2462a;
+  color: #fff;
+  font-weight: 600;
+}
+a.ai-badge:hover,
+a.ai-badge:focus-visible {
+  border-color: #e0563a;
+}
+a.ai-badge:hover .i,
+a.ai-badge:focus-visible .i {
+  background: #e0563a;
+}
+.ai-badge.sm {
+  top: 4px;
+  right: 4px;
+  padding: 2px 4px;
+  font-size: 8px;
+}
+.ai-badge.sm::before {
+  display: none;
+}
+.ai-badge.credit::before {
+  background: #8fd0a0;
+}
+.ai-badge.credit a {
+  color: inherit;
+}

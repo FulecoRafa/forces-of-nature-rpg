@@ -1,0 +1,328 @@
+---
+import { Image } from 'astro:assets';
+import AiBadge from '../AiBadge.astro';
+import type { Localized } from '../../lib/content';
+import { useI18n } from '../../i18n';
+import Field from '../Field.astro';
+import PeopleList from '../PeopleList.astro';
+import StoryLink from '../StoryLink.astro';
+import { inline } from '../../lib/inline';
+import { natColorDark, type Nature } from '../../lib/natures';
+
+interface Props {
+  society: Localized<'societies'>;
+  nature: Nature;
+  stories: Localized<'stories'>[];
+}
+const { society, nature, stories } = Astro.props;
+const { t } = useI18n(Astro.url);
+const d = society.data;
+const featured = d.values.filter((v) => v.featured);
+const others = d.values.filter((v) => !v.featured);
+const num = (i: number) => String(i + 1).padStart(2, '0');
+---
+
+<main class="penrose" data-theme="penrose">
+  <section class="hero">
+    <Field kind="penrose" z={-1} />
+    <div class="hero-text">
+      <div class="tags">
+        <span>{d.code}</span>
+        <span style={`color:${natColorDark(nature.hue)}`}>{t.common.nature}: {nature.name.toUpperCase()}</span>
+        <span>{d.tech ? t.common.tech : t.common.noTech}</span>
+      </div>
+      <h1 set:html={(d.displayTitle ?? d.title).split('\n').join('<br>')} />
+      <p class="lead-p">{d.lead}</p>
+    </div>
+    {
+      d.heroImage && (
+        <figure class="hero-fig">
+          <div class="frame hero-frame">
+            <Image src={d.heroImage} alt={d.title} widths={[640, 960, 1280]} sizes="(min-width: 900px) 50vw, 100vw" loading="eager" />
+            <AiBadge src={d.heroImage} />
+          </div>
+          {d.heroCaption && <figcaption>{d.heroCaption}</figcaption>}
+        </figure>
+      )
+    }
+  </section>
+
+  {
+    featured.length > 0 && (
+      <section class="strip">
+        {featured.map((v, i) => (
+          <div>
+            <span class="k">
+              {num(i)} · {v.title.toUpperCase()}
+            </span>
+            <span class="m">{v.motto}</span>
+          </div>
+        ))}
+      </section>
+    )
+  }
+
+  <section class="more">
+    <div class="more-text">
+      <h2 class="mono-h">{t.societies.moreAbout}</h2>
+      <div class="body"><slot /></div>
+      {
+        d.images.length > 0 && (
+          <div class="figs">
+            {d.images.map((im) => (
+              <figure>
+                <div class="frame fig-frame">
+                  <Image src={im.src} alt="" widths={[400, 800]} sizes="(min-width: 900px) 25vw, 100vw" />
+                  <AiBadge src={im.src} />
+                </div>
+                <figcaption>{im.caption}</figcaption>
+              </figure>
+            ))}
+          </div>
+        )
+      }
+    </div>
+    <aside class="side">
+      {
+        d.law && (
+          <div class="law">
+            <span class="k accent">{t.societies.law}</span>
+            <span class="law-t">{d.law.title}</span>
+            <span class="law-x">{d.law.text}</span>
+          </div>
+        )
+      }
+      {stories.map((s) => <StoryLink story={s} />)}
+      {
+        d.infobox.length > 0 && (
+          <div class="info">
+            {d.infobox.map((r) => (
+              <div>
+                <span class="k">{r.k}</span>
+                <span class="v">{r.v}</span>
+              </div>
+            ))}
+          </div>
+        )
+      }
+      {d.people.length > 0 && <PeopleList people={d.people} />}
+    </aside>
+  </section>
+
+  {
+    others.length > 0 && (
+      <section class="others">
+        <h2 class="mono-h">{t.societies.otherValues}</h2>
+        <div class="cells others-grid">
+          {others.map((v, i) => (
+            <div>
+              <span class="k">
+                {num(featured.length + i)} · {v.title.toUpperCase()}
+              </span>
+              <span class="o-m">{v.motto}</span>
+              {v.description && <p set:html={inline(v.description)} />}
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+</main>
+
+<style>
+  .penrose {
+    background: var(--t-bg);
+    color: var(--t-fg);
+  }
+  .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: clamp(28px, 6vw, 80px) var(--pad-x);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 40px;
+    border-bottom: 1px solid var(--t-border);
+  }
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .tags {
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--t-accent);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: clamp(48px, 9vw, 120px);
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+  }
+  .lead-p {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--t-fg-2);
+    max-width: 30em;
+  }
+  figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  figcaption {
+    font: 500 10px var(--font-mono);
+    color: var(--t-label);
+  }
+  .hero-frame {
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--t-accent);
+    background: #000;
+  }
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    border-bottom: 1px solid var(--t-border);
+  }
+  .strip > div {
+    padding: 28px clamp(20px, 3vw, 36px);
+    border-right: 1px solid var(--t-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .k {
+    font: 500 11px var(--font-mono);
+    color: var(--t-label);
+  }
+  .k.accent {
+    color: var(--t-accent);
+  }
+  .m {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .more {
+    padding: clamp(28px, 5vw, 64px) var(--pad-x);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 48px;
+  }
+  .more-text {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 36em;
+  }
+  .mono-h {
+    margin: 0;
+    font: 500 12px var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--t-label);
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--t-body);
+  }
+  .body :global(p) {
+    margin: 0;
+  }
+  .body :global(strong) {
+    color: var(--t-strong);
+  }
+  .figs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .fig-frame {
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--t-border);
+    background: #000;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .law {
+    border: 1px solid var(--t-accent);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .law-t {
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .law-x {
+    font-size: 14px;
+    color: var(--t-fg-3);
+    line-height: 1.5;
+  }
+  .info {
+    border: 1px solid var(--t-border);
+  }
+  .info > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--t-border-2);
+  }
+  .info > div:last-child {
+    border-bottom: 0;
+  }
+  .v {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+  .others {
+    padding: clamp(28px, 5vw, 64px) var(--pad-x);
+    border-top: 1px solid var(--t-border);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .others-grid {
+    --cell-border: var(--t-border);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+  .others-grid > div {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .o-m {
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  .others-grid p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--t-fg-3);
+  }
+  .others-grid p :global(em) {
+    color: var(--t-fg-2);
+  }
+</style>
